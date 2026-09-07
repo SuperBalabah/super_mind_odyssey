@@ -208,7 +208,8 @@ class SyncManager {
         const file = data.files['mind_odyssey_progress.json'];
         if (file && file.content) {
           const remoteState = JSON.parse(file.content);
-          this.state = { ...this.state, ...remoteState };
+          this.state = { ...this.state, ...remoteState, customNodes: remoteState.customNodes || [] };
+          this.mergeCustomNodes();
           this.saveLocalState();
           return { success: true, data: this.state };
         }
@@ -233,7 +234,8 @@ class SyncManager {
     try {
       const parsed = JSON.parse(jsonString);
       if (parsed.unlockedNodes) {
-        this.state = parsed;
+        this.state = { ...this.getDefaultState(), ...parsed, customNodes: parsed.customNodes || [] };
+        this.mergeCustomNodes();
         this.saveLocalState();
         return true;
       }

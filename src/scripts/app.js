@@ -7,6 +7,7 @@ class MindOdysseyApp {
     this.currentStep = 1; // 1: Dilemma, 2: Core, 3: Takeaway, 4: Three Doors
     this.activeNode = null;
     this.selectedOption = null;
+    this._syncBadgeTimer = null;
 
     this.initElements();
     this.initEvents();
@@ -14,6 +15,13 @@ class MindOdysseyApp {
     this.updateHUD();
     this.renderMap();
     this.renderProfile();
+
+    // Non-blocking: pull latest cloud state on startup (silent merge)
+    window.syncManager.initCloudPull().then(() => {
+      this.updateHUD();
+      this.renderMap();
+      this.renderProfile();
+    });
   }
 
   initElements() {
@@ -226,16 +234,23 @@ class MindOdysseyApp {
       window.syncManager.saveGistConfig(this.gistTokenInput.value, this.gistIdInput.value, geminiVal, openrouterVal);
       this.showToast('✅ 設定已儲存（含 Gemini 與 OpenRouter 雙軌金鑰）');
       this.settingsModal.classList.remove('active');
+      // Auto push after settings saved (connects the pipe for the first time)
+      window.syncManager.tryCloudSync(() => this.showSyncBadge());
     });
 
     this.btnSyncNow.addEventListener('click', async () => {
       this.btnSyncNow.disabled = true;
       this.btnSyncNow.textContent = '同步中...';
-      const res = await window.syncManager.tryCloudSync();
+      // Pull first (get remote changes), then push local state up
+      await window.syncManager.pullFromGist();
+      const res = await window.syncManager.tryCloudSync(() => this.showSyncBadge());
       this.btnSyncNow.disabled = false;
       this.btnSyncNow.textContent = '立即雲端同步 (Gist)';
       if (res.success) {
-        this.showToast('☁️ 雲端同步完成！');
+        this.showToast('☁️ 雙向同步完成！');
+        this.updateHUD();
+        this.renderMap();
+        this.renderProfile();
       } else {
         this.showToast('❌ 同步失敗: ' + (res.reason || '請檢查 Token 與 Gist ID'));
       }
@@ -327,7 +342,11 @@ class MindOdysseyApp {
         });
       });
     }
+
+    // Listen for background sync success (from completeNode, addCustomNode, etc.)
+    window.addEventListener('gist-sync-success', () => this.showSyncBadge());
   }
+
 
   updateSoundBtn() {
     if (!this.muteBtn) return;
@@ -1662,6 +1681,18 @@ class MindOdysseyApp {
     setTimeout(() => {
       this.toast.classList.remove('show');
     }, 2800);
+  }
+
+  // Micro sync badge: slides in from top-right, auto fades after 2.5s
+  showSyncBadge() {
+    const badge = document.getElementById('sync-badge');
+    if (!badge) return;
+    if (this._syncBadgeTimer) clearTimeout(this._syncBadgeTimer);
+    badge.classList.add('show');
+    this._syncBadgeTimer = setTimeout(() => {
+      badge.classList.remove('show');
+      this._syncBadgeTimer = null;
+    }, 2500);
   }
 }
 

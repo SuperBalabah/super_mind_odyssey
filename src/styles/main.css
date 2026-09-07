@@ -1199,6 +1199,42 @@ body {
   transform: translateX(-50%) translateY(0);
 }
 
+/* Micro Sync Badge - top right corner, subtle & non-blocking */
+.sync-badge {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 60px);
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-full);
+  padding: 4px 10px 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #10b981;
+  letter-spacing: 0.03em;
+  z-index: 1999;
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sync-badge svg {
+  flex-shrink: 0;
+  color: #10b981;
+}
+
+.sync-badge.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+
+
 /* Ambient Cosmic Canvas */
 #cosmic-canvas {
   position: fixed;

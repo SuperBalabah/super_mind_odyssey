@@ -154,8 +154,9 @@ class SyncManager {
     this.tryCloudSync(); // Non-blocking cloud sync
   }
 
-  // GitHub Gist Cloud Sync
-  async tryCloudSync() {
+  // GitHub Gist Cloud Sync (push local → Gist)
+  // onSuccess: optional callback fired when sync succeeds (used to show micro badge)
+  async tryCloudSync(onSuccess = null) {
     if (!this.gistConfig.token || !this.gistConfig.gistId) {
       return { success: false, reason: 'no_config' };
     }
@@ -179,6 +180,9 @@ class SyncManager {
       });
 
       if (res.ok) {
+        if (typeof onSuccess === 'function') onSuccess();
+        // Dispatch global event so any listener (e.g., app.js) can react
+        window.dispatchEvent(new CustomEvent('gist-sync-success'));
         return { success: true };
       } else {
         const err = await res.json();
@@ -186,6 +190,20 @@ class SyncManager {
       }
     } catch (e) {
       return { success: false, reason: e.message };
+    }
+  }
+
+  // On app startup: pull remote Gist → merge into local state (remote wins if newer)
+  async initCloudPull() {
+    if (!this.gistConfig.token || !this.gistConfig.gistId) return;
+    try {
+      const res = await this.pullFromGist();
+      if (res.success) {
+        // Re-inject custom nodes into runtime database after pull
+        this.mergeCustomNodes();
+      }
+    } catch (e) {
+      console.warn('initCloudPull failed silently:', e);
     }
   }
 
@@ -208,8 +226,7 @@ class SyncManager {
         const file = data.files['mind_odyssey_progress.json'];
         if (file && file.content) {
           const remoteState = JSON.parse(file.content);
-          this.state = { ...this.state, ...remoteState, customNodes: remoteState.customNodes || [] };
-          this.mergeCustomNodes();
+          this.state = { ...this.state, ...remoteState };
           this.saveLocalState();
           return { success: true, data: this.state };
         }
@@ -234,8 +251,7 @@ class SyncManager {
     try {
       const parsed = JSON.parse(jsonString);
       if (parsed.unlockedNodes) {
-        this.state = { ...this.getDefaultState(), ...parsed, customNodes: parsed.customNodes || [] };
-        this.mergeCustomNodes();
+        this.state = parsed;
         this.saveLocalState();
         return true;
       }

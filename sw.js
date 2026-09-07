@@ -3,11 +3,14 @@
  * Network-first strategy for seamless updates when online, 100% offline fallback when disconnected.
  */
 
-const CACHE_NAME = 'super-mind-odyssey-v1.6.0';
+const CACHE_NAME = 'super-mind-odyssey-v1.7.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/apple-touch-icon.png',
   './src/styles/main.css',
   './src/scripts/starfield.js',
   './src/scripts/audio.js',
@@ -50,8 +53,13 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // If it's a call to GitHub API, let it go to network directly
-  if (event.request.url.includes('api.github.com')) {
+  // If it's an external API call, never cache or intercept: pass straight to network
+  if (
+    event.request.url.includes('api.github.com') ||
+    event.request.url.includes('openrouter.ai') ||
+    event.request.url.includes('googleapis.com') ||
+    event.request.url.includes('api.groq.com')
+  ) {
     return;
   }
 

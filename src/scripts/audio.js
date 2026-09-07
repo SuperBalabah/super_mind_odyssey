@@ -122,6 +122,8 @@ class SoundEngine {
 
     osc.start();
     osc.stop(this.ctx.currentTime + 0.3);
+  }
+
   // Relic Acquisition / Triumph Chime (D-Maj triad chime)
   playRewardRelic() {
     if (this.isMuted) return;

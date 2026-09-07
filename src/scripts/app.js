@@ -98,6 +98,13 @@ class MindOdysseyApp {
     this.openrouterKeyInput = document.getElementById('input-openrouter-key');
 
 
+    // Codex Modal (好讀模式)
+    this.codexModal = document.getElementById('codex-modal');
+    this.btnCloseCodex = document.getElementById('btn-close-codex');
+    this.btnCodexReplay = document.getElementById('btn-codex-replay');
+    this.codexContentBody = document.getElementById('codex-content-body');
+    this.codexHeaderTitle = document.getElementById('codex-header-title');
+
     // Radar Modal
     this.radarModal = document.getElementById('radar-modal');
     this.btnOpenRadar = document.getElementById('btn-open-radar');
@@ -122,6 +129,18 @@ class MindOdysseyApp {
   }
 
   initEvents() {
+    // Codex Modal close
+    if (this.btnCloseCodex) {
+      this.btnCloseCodex.addEventListener('click', () => {
+        if (this.codexModal) this.codexModal.classList.remove('active');
+      });
+    }
+    if (this.codexModal) {
+      this.codexModal.addEventListener('click', (e) => {
+        if (e.target === this.codexModal) this.codexModal.classList.remove('active');
+      });
+    }
+
     // Navigation
     this.navBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -651,6 +670,19 @@ class MindOdysseyApp {
   renderThreeDoors() {
     this.doorsContainer.innerHTML = '';
     const doors = this.activeNode.doors || [];
+    this.renderDoorCards(doors, false);
+
+    // If user has API keys configured, dynamically explore 3 uncharted horizon doors
+    const geminiKey = window.syncManager.gistConfig.geminiApiKey || '';
+    const openrouterKey = window.syncManager.gistConfig.openrouterApiKey || '';
+    if (geminiKey || openrouterKey) {
+      this.fetchDynamicNewDoors(geminiKey, openrouterKey);
+    }
+  }
+
+  renderDoorCards(doors, isAiGenerated = false) {
+    if (!this.doorsContainer) return;
+    this.doorsContainer.innerHTML = '';
 
     doors.forEach(door => {
       const doorCard = document.createElement('div');
@@ -664,21 +696,136 @@ class MindOdysseyApp {
       const targetEn = targetNode && targetNode.modelEn ? ` (${targetNode.modelEn})` : '';
 
       doorCard.innerHTML = `
-        <div class="door-portal-icon">${door.icon}</div>
+        <div class="door-portal-icon">${door.icon || '🚪'}</div>
         <div class="door-info">
-          <div class="door-badge ${badgeClass}">${door.badge}</div>
+          <div style="display: flex; align-items: center;">
+            <div class="door-badge ${badgeClass}">${door.badge}</div>
+            ${isAiGenerated ? `<span class="door-ai-tag">✦ AI 探索</span>` : ''}
+          </div>
           <div class="door-heading">${door.title}${targetEn ? `<span class="door-en-sub">${targetEn}</span>` : ''}</div>
           <div class="door-hook">${door.hook}</div>
         </div>
       `;
 
       doorCard.addEventListener('click', () => {
-        window.soundEngine.playPortalSelect();
+        window.soundEngine?.playPortalSelect?.();
         this.selectDoor(door.targetId, door.title);
       });
 
       this.doorsContainer.appendChild(doorCard);
     });
+  }
+
+  async fetchDynamicNewDoors(geminiKey, openrouterKey) {
+    const prompt = `你是一位世界頂級心智模型教育策展人（兼具理查·費曼與查理·蒙格的視角）。
+用戶剛通關掌握了心智模型【${this.activeNode.title}】（英文：${this.activeNode.modelEn || ''}，領域：${this.activeNode.domain}）。
+請為用戶設計 3 個【全新、尚未在知識庫中出現、極具好奇心與現實威力】的課後探索門。
+必須嚴格輸出純 JSON 陣列：
+[
+  {
+    "type": "deep",
+    "badge": "深入同域",
+    "targetId": "英文唯一底線代碼_1",
+    "title": "中文標題（例：演化博弈論：鷹鴿賽局）",
+    "hook": "18字內充滿懸念的好奇心鉤子",
+    "icon": "Emoji"
+  },
+  {
+    "type": "cross",
+    "badge": "跨界跳躍",
+    "targetId": "英文唯一底線代碼_2",
+    "title": "中文標題（例：物理學：資訊熵與宇宙本質）",
+    "hook": "18字內充滿懸念的好奇心鉤子",
+    "icon": "Emoji"
+  },
+  {
+    "type": "twist",
+    "badge": "反常識",
+    "targetId": "英文唯一底線代碼_3",
+    "title": "中文標題（例：統計學：倖存者偏差的隱形死角）",
+    "hook": "18字內充滿懸念的好奇心鉤子",
+    "icon": "Emoji"
+  }
+]`;
+
+    let generatedDoors = null;
+
+    // 1. Try Gemini
+    if (geminiKey) {
+      const models = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
+      for (const m of models) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json" }
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            generatedDoors = JSON.parse(data.candidates[0].content.parts[0].text);
+            break;
+          }
+        } catch (e) {
+          console.warn(`Dynamic doors gemini model ${m} failed:`, e);
+        }
+      }
+    }
+
+    // 2. Try OpenRouter Fallback
+    if (!generatedDoors && openrouterKey) {
+      const freeModels = ['minimax/minimax-m2.7:free', 'liquid/lfm-2.5-2.6b:free'];
+      for (const m of freeModels) {
+        try {
+          const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openrouterKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': window.location.origin || 'http://localhost:3456',
+              'X-Title': 'Super Mind Odyssey'
+            },
+            body: JSON.stringify({
+              model: m,
+              messages: [{ role: 'user', content: prompt }],
+              response_format: { type: 'json_object' }
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const parsed = JSON.parse(data.choices[0].message.content);
+            generatedDoors = Array.isArray(parsed) ? parsed : (parsed.doors || Object.values(parsed)[0]);
+            break;
+          }
+        } catch (e) {
+          console.warn(`Dynamic doors openrouter ${m} failed:`, e);
+        }
+      }
+    }
+
+    if (generatedDoors && Array.isArray(generatedDoors) && generatedDoors.length >= 3) {
+      this.activeNode.doors = generatedDoors;
+      this.renderDoorCards(generatedDoors, true);
+      
+      // Inject newly discovered horizon topics into Star Map as fogged uncharted nodes
+      generatedDoors.forEach(d => {
+        if (!window.MIND_DATABASE.some(n => n.id === d.targetId)) {
+          window.MIND_DATABASE.push({
+            id: d.targetId,
+            domain: d.type === 'cross' ? '跨學科前沿' : this.activeNode.domain,
+            domainId: d.type === 'cross' ? 'cross_frontier' : this.activeNode.domainId,
+            title: d.title,
+            subtitle: d.hook,
+            icon: d.icon || '🌌',
+            status: 'fogged'
+          });
+        }
+      });
+      this.renderMap();
+      this.showToast('✨ AI 探測出 3 條全新跨域航向！已同步標記於迷霧星圖！');
+    }
   }
 
   async selectDoor(targetId, title) {
@@ -851,9 +998,15 @@ class MindOdysseyApp {
 
         if (isUnlocked) {
           nodeEl.addEventListener('click', () => {
-            window.soundEngine.playCardFlip();
-            this.loadActiveNode(node.id);
-            this.switchView('view-expedition');
+            window.soundEngine?.playCardFlip?.();
+            if (isLit) {
+              // 已通關節點：直接開啟心智圖鑑好讀模式！
+              this.openCodexModal(node.id);
+            } else {
+              // 未完成節點：進入拓荒挑戰
+              this.loadActiveNode(node.id);
+              this.switchView('view-expedition');
+            }
           });
         }
 
@@ -878,6 +1031,7 @@ class MindOdysseyApp {
 
         const relicEl = document.createElement('div');
         relicEl.className = `relic-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+        if (isUnlocked) relicEl.style.cursor = 'pointer';
 
         const iconHtml = node.relicReward.svg
           ? `<img src="${node.relicReward.svg}" class="relic-svg-icon" alt="${node.relicReward.name}">`
@@ -888,11 +1042,19 @@ class MindOdysseyApp {
             ${iconHtml}
             <div>
               <div class="relic-name">${node.relicReward.name}</div>
-              <div class="relic-domain">${node.relicReward.domain}${node.modelEn ? ` • ${node.modelEn}` : ''} • ${isUnlocked ? '✦ 已收錄' : '🔒 迷霧封印'}</div>
+              <div class="relic-domain">${node.relicReward.domain}${node.modelEn ? ` • ${node.modelEn}` : ''} • ${isUnlocked ? '✦ 已收錄 (點擊精讀)' : '🔒 迷霧封印'}</div>
             </div>
           </div>
           <div class="relic-hologram-glare"></div>
         `;
+
+        // Click on unlocked relic opens Codex Reader View
+        if (isUnlocked) {
+          relicEl.addEventListener('click', () => {
+            window.soundEngine?.playCardFlip?.();
+            this.openCodexModal(node.id);
+          });
+        }
 
         // 3D Tilt Effect on mousemove / touch
         relicEl.addEventListener('mousemove', (e) => {
@@ -1036,6 +1198,123 @@ class MindOdysseyApp {
     ctx.shadowBlur = 8;
     ctx.stroke();
     ctx.shadowBlur = 0;
+  }
+
+  // -------------------------------------------------------------
+  // Mind Codex Reader Engine (已通關知識點好讀精讀模式)
+  // -------------------------------------------------------------
+  openCodexModal(nodeId) {
+    const node = window.MIND_DATABASE.find(n => n.id === nodeId);
+    if (!node) return;
+
+    const modal = document.getElementById('codex-modal');
+    const titleEl = document.getElementById('codex-header-title');
+    const bodyEl = document.getElementById('codex-content-body');
+    const replayBtn = document.getElementById('btn-codex-replay');
+    if (!modal || !bodyEl) return;
+
+    if (titleEl) {
+      titleEl.textContent = `${node.title.split('：')[0]} // CODEX`;
+    }
+
+    if (replayBtn) {
+      replayBtn.onclick = () => {
+        modal.classList.remove('active');
+        this.loadActiveNode(node.id);
+        this.switchView('view-expedition');
+        this.showToast(`🎮 重新進入【${node.title.split('：')[0]}】通關體驗！`);
+      };
+    }
+
+    const state = window.syncManager.state;
+    const isCompleted = state.completedNodes.includes(node.id);
+
+    // Build relic banner
+    let relicHtml = '';
+    if (node.relicReward) {
+      const iconHtml = node.relicReward.svg
+        ? `<img src="${node.relicReward.svg}" style="width: 36px; height: 36px;" alt="${node.relicReward.name}">`
+        : `<span style="font-size: 28px;">${node.relicReward.icon || '🏆'}</span>`;
+      relicHtml = `
+        <div class="codex-relic-banner">
+          ${iconHtml}
+          <div>
+            <div style="font-size: 13px; font-weight: 700; color: #fbbf24;">專屬神器：${node.relicReward.name}</div>
+            <div style="font-size: 11px; color: #94a3b8;">領域：${node.relicReward.domain} ${isCompleted ? '✦ 已收錄' : '🔒 迷霧中'}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Build jargons glossary
+    let jargonsHtml = '';
+    if (node.core && node.core.jargons && node.core.jargons.length > 0) {
+      jargonsHtml = `
+        <div class="codex-section">
+          <div class="codex-sec-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            零術語負債字典 // JARGONS GLOSSARY
+          </div>
+          <div class="codex-jargon-grid">
+            ${node.core.jargons.map(j => `
+              <div class="codex-jargon-item">
+                <div class="codex-jargon-term">${j.term}</div>
+                <div class="codex-jargon-en">${j.en || ''}</div>
+                <div class="codex-jargon-desc">${j.explanation}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    bodyEl.innerHTML = `
+      <div class="codex-hero">
+        <div class="codex-badges-row">
+          <span class="star-system-tag" style="display: inline-block;">${node.domain}</span>
+          <span class="model-en-tag" style="display: inline-block;">${node.modelEn || ''}</span>
+          <span style="font-size: 11px; color: #38bdf8; font-family: var(--font-mono); margin-left: auto;">EST. READ // ${node.readingTime || '2.5 分鐘'}</span>
+        </div>
+        <div class="codex-title">${node.title}</div>
+        <div class="codex-subtitle">${node.subtitle || ''}</div>
+      </div>
+
+      ${relicHtml}
+
+      <div class="codex-section">
+        <div class="codex-sec-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          底層第一性本質 // CORE ESSENCE
+        </div>
+        <div class="codex-essence-box">
+          「${node.core ? node.core.essence : (node.subtitle || node.title)}」
+        </div>
+      </div>
+
+      <div class="codex-section">
+        <div class="codex-sec-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          費曼生活化比喻 // FEYNMAN ANALOGY
+        </div>
+        <div class="codex-analogy-text">
+          ${node.core ? node.core.analogy : (node.dilemma ? node.dilemma.reveal : '')}
+        </div>
+      </div>
+
+      ${jargonsHtml}
+
+      <div class="codex-section" style="border-color: rgba(16, 185, 129, 0.3);">
+        <div class="codex-sec-title" style="color: #34d399;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          現實戰場防身指南 // TACTICAL ACTION PROTOCOL
+        </div>
+        <div class="codex-action-box">
+          ${node.takeaway ? node.takeaway.action : '將此思維模型融入日常決策，在關鍵時刻打破群體從眾與直覺盲點。'}
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('active');
   }
 
   renderRadar() {
@@ -1580,11 +1859,21 @@ class MindOdysseyApp {
     throw new Error('All OpenRouter models failed');
   }
 
-  async callOpenRouterInquiry(apiKey, question) {
-    const prompt = `你是一位世界頂級心智模型普及大師。
+  buildInquiryPrompt(question) {
+    return `你是一位融會貫通的心智模型大師（兼具理查·費曼的生動通透與查理·蒙格的跨學科深刻洞察）。
 用戶正在研習心智模型【${this.activeNode.title}】（英文：${this.activeNode.modelEn || ''}，領域：${this.activeNode.domain}）。
 用戶的深度追問是：【${question}】
-請在 120 字以內，用極簡犀利的生活比喻直擊本質，最後一句給出最硬核的現實破局操作指南。禁止任何客套話。`;
+
+請嚴格遵循以下費曼核心解答原則：
+1. 【直擊核心】：直接針對用戶問題核心進行本質拆解，拒絕任何客套與廢話開場。
+2. 【情境與案例剖析】：若用戶要求舉例或分析情境，請給出具體且接地氣的生活/職場/商業實戰案例，剖析局勢與背後博弈動機。
+3. 【現實破局手冊】：結尾給出具體、硬核、可立即落地的破局行動指南或防身心法。
+
+請使用繁體中文，層次分明，邏輯清晰透徹，長度控制在 250~450 字之間。`;
+  }
+
+  async callOpenRouterInquiry(apiKey, question) {
+    const prompt = this.buildInquiryPrompt(question);
 
     const freeModels = [
       'minimax/minimax-m2.7:free',
@@ -1605,7 +1894,9 @@ class MindOdysseyApp {
           },
           body: JSON.stringify({
             model: m,
-            messages: [{ role: 'user', content: prompt }]
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 1024,
+            temperature: 0.7
           })
         });
         if (res.ok) {
@@ -1622,14 +1913,7 @@ class MindOdysseyApp {
   }
 
   async callGeminiInquiry(apiKey, question) {
-    const prompt = `你是一位世界頂級的心智模型普及大師（風格如同理查·費曼與查理·蒙格）。
-用戶正在研習心智模型【${this.activeNode.title}】（英文：${this.activeNode.modelEn || ''}，領域：${this.activeNode.domain}）。
-用戶的深度追問是：【${question}】
-
-請遵循【費曼極簡原則】：
-1. 嚴格在 120 字以內，禁止任何空話套話或客套開場白。
-2. 用一個犀利、直觀的生活化白話比喻直擊底層本質。
-3. 零術語負債，最後一句給出最硬核的現實破局操作指南。`;
+    const prompt = this.buildInquiryPrompt(question);
 
     const models = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.6-flash'];
     let lastErr = null;
@@ -1642,7 +1926,7 @@ class MindOdysseyApp {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.6, maxOutputTokens: 256 }
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
           })
         });
 

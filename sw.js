@@ -3,7 +3,7 @@
  * Network-first strategy for seamless updates when online, 100% offline fallback when disconnected.
  */
 
-const CACHE_NAME = 'super-mind-odyssey-v2.2.0';
+const CACHE_NAME = 'super-mind-odyssey-v2.3.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

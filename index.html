@@ -543,6 +543,26 @@
     </div>
   </div>
 
+  <!-- Mind Codex Reader Modal (已破關知識點精讀好讀模式) -->
+  <div class="modal-overlay" id="codex-modal">
+    <div class="modal-card codex-card" style="max-width: 680px; width: 92%; max-height: 88vh; overflow-y: auto; padding: 24px;">
+      <div class="modal-header" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px;">📖</span>
+          <span class="modal-title" id="codex-header-title">心智圖鑑精讀 // MIND CODEX</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-action-ghost" id="btn-codex-replay" style="font-size: 11px; padding: 4px 10px; border-radius: 4px;">🎮 重新跑關體驗</button>
+          <button class="btn-close-modal" id="btn-close-codex">&times;</button>
+        </div>
+      </div>
+      
+      <div id="codex-content-body">
+        <!-- 動態渲染完整好讀長卷軸 -->
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Toast Notification -->
   <div class="toast-msg" id="toast-msg">提示訊息</div>
 
@@ -553,11 +573,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="src/scripts/starfield.js?v=2.2.0"></script>
-  <script src="src/scripts/audio.js?v=2.2.0"></script>
-  <script src="src/scripts/database.js?v=2.2.0"></script>
-  <script src="src/scripts/sync.js?v=2.2.0"></script>
-  <script src="src/scripts/app.js?v=2.2.0"></script>
+  <script src="src/scripts/starfield.js?v=2.3.0"></script>
+  <script src="src/scripts/audio.js?v=2.3.0"></script>
+  <script src="src/scripts/database.js?v=2.3.0"></script>
+  <script src="src/scripts/sync.js?v=2.3.0"></script>
+  <script src="src/scripts/app.js?v=2.3.0"></script>
 
   <!-- Service Worker Registration for PWA Offline Cache -->
   <script>

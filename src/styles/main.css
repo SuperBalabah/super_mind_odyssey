@@ -2142,4 +2142,121 @@ body {
   }
 }
 
+/* Mind Codex Reader (已通關好讀模式) */
+.codex-hero {
+  margin-bottom: 20px;
+}
+.codex-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.codex-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.codex-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+}
+.codex-relic-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 18px;
+}
+.codex-section {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.codex-sec-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--accent-cyan);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.codex-essence-box {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fef08a;
+  line-height: 1.6;
+  border-left: 3px solid #eab308;
+  padding-left: 12px;
+  margin: 6px 0;
+}
+.codex-analogy-text {
+  font-size: 14px;
+  color: #e2e8f0;
+  line-height: 1.75;
+}
+.codex-jargon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+.codex-jargon-item {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.codex-jargon-term {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c084fc;
+  margin-bottom: 2px;
+}
+.codex-jargon-en {
+  font-size: 10px;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+  margin-bottom: 4px;
+}
+.codex-jargon-desc {
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+.codex-action-box {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #6ee7b7;
+  line-height: 1.6;
+}
+
+/* Door AI Generation Badge */
+.door-ai-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  margin-left: 6px;
+}
+
 

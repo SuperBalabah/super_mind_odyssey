@@ -240,13 +240,14 @@ class MindOdysseyApp {
 
     this.btnSyncNow.addEventListener('click', async () => {
       this.btnSyncNow.disabled = true;
-      this.btnSyncNow.textContent = '同步中...';
+      this.btnSyncNow.innerHTML = '↻ 同步中...';
       // Pull first (get remote changes), then push local state up
       await window.syncManager.pullFromGist();
       const res = await window.syncManager.tryCloudSync(() => this.showSyncBadge());
       this.btnSyncNow.disabled = false;
-      this.btnSyncNow.textContent = '立即雲端同步 (Gist)';
+      this.btnSyncNow.innerHTML = '↕ 雙向同步 (Pull + Push)';
       if (res.success) {
+        this.updateSyncStatus();
         this.showToast('☁️ 雙向同步完成！');
         this.updateHUD();
         this.renderMap();
@@ -345,6 +346,25 @@ class MindOdysseyApp {
 
     // Listen for background sync success (from completeNode, addCustomNode, etc.)
     window.addEventListener('gist-sync-success', () => this.showSyncBadge());
+
+    // Pull on tab/app focus: catches cross-device changes (phone → computer)
+    // Only pull if >3 min since last pull to avoid hammering the API
+    this._lastPullTime = Date.now();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        const msSinceLast = Date.now() - this._lastPullTime;
+        if (msSinceLast > 3 * 60 * 1000) {
+          this._lastPullTime = Date.now();
+          window.syncManager.pullFromGist().then(res => {
+            if (res.success) {
+              this.updateHUD();
+              this.renderMap();
+              this.renderProfile();
+            }
+          });
+        }
+      }
+    });
   }
 
 
@@ -1683,6 +1703,17 @@ class MindOdysseyApp {
     }, 2800);
   }
 
+  // Update the "last synced" line inside settings modal
+  updateSyncStatus() {
+    const el = document.getElementById('sync-status-line');
+    if (!el) return;
+    const now = new Date();
+    const hhmm = now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+    el.textContent = `上次同步：${hhmm} ✔`;
+    el.style.color = '#10b981';
+    setTimeout(() => { el.style.color = '#64748b'; }, 3000);
+  }
+
   // Micro sync badge: slides in from top-right, auto fades after 2.5s
   showSyncBadge() {
     const badge = document.getElementById('sync-badge');
@@ -1693,6 +1724,7 @@ class MindOdysseyApp {
       badge.classList.remove('show');
       this._syncBadgeTimer = null;
     }, 2500);
+    this.updateSyncStatus();
   }
 }
 

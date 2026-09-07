@@ -41,6 +41,14 @@ class SyncManager {
 
   loadLocalState() {
     try {
+      if (typeof window !== 'undefined' && window.location && window.location.search.includes('reset=1')) {
+        localStorage.removeItem(STORAGE_KEY);
+        if (window.history && window.history.replaceState) {
+          const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+          window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+        }
+        return this.getDefaultState();
+      }
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
@@ -50,6 +58,12 @@ class SyncManager {
       console.warn('Failed to load local state, using default', e);
     }
     return this.getDefaultState();
+  }
+
+  resetProgress() {
+    this.state = this.getDefaultState();
+    this.saveLocalState();
+    return this.state;
   }
 
   saveLocalState() {

@@ -80,9 +80,9 @@ class MindOdysseyApp {
     this.closeSettingsBtn = document.getElementById('btn-close-settings');
     this.saveSettingsBtn = document.getElementById('btn-save-settings');
     this.gistTokenInput = document.getElementById('input-gist-token');
-    this.gistIdInput = document.getElementById('input-gist-id');
     this.btnExportJson = document.getElementById('btn-export-json');
     this.btnImportJson = document.getElementById('btn-import-json');
+    this.btnResetProgress = document.getElementById('btn-reset-progress');
     this.fileImportInput = document.getElementById('file-import-input');
     this.geminiKeyInput = document.getElementById('input-gemini-key');
     this.openrouterKeyInput = document.getElementById('input-openrouter-key');
@@ -242,6 +242,16 @@ class MindOdysseyApp {
       };
       reader.readAsText(file);
     });
+
+    if (this.btnResetProgress) {
+      this.btnResetProgress.addEventListener('click', () => {
+        if (confirm('確定要重置所有探險進度嗎？\n這將會清除所有進度，從第一天「智豬博弈」全新出發。')) {
+          window.syncManager.resetProgress();
+          this.showToast('🔄 進度已重置！');
+          setTimeout(() => location.reload(), 400);
+        }
+      });
+    }
 
     // Radar Modal Events
     if (this.btnOpenRadar) {

@@ -111,6 +111,7 @@ class SyncManager {
       window.MIND_DATABASE.push(node);
     }
     this.saveLocalState();
+    this.tryCloudSync();
   }
 
   // Mark a node as completed and unlock next chosen nodes / relics

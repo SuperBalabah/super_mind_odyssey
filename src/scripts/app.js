@@ -87,6 +87,7 @@ class MindOdysseyApp {
     this.settingsModal = document.getElementById('modal-settings');
     this.closeSettingsBtn = document.getElementById('btn-close-settings');
     this.saveSettingsBtn = document.getElementById('btn-save-settings');
+    this.btnSyncNow = document.getElementById('btn-sync-now');
     this.gistTokenInput = document.getElementById('input-gist-token');
     this.gistIdInput = document.getElementById('input-gist-id');
     this.btnExportJson = document.getElementById('btn-export-json');
@@ -95,6 +96,7 @@ class MindOdysseyApp {
     this.fileImportInput = document.getElementById('file-import-input');
     this.geminiKeyInput = document.getElementById('input-gemini-key');
     this.openrouterKeyInput = document.getElementById('input-openrouter-key');
+
 
     // Radar Modal
     this.radarModal = document.getElementById('radar-modal');

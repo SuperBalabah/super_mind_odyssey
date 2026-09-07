@@ -80,6 +80,7 @@ class MindOdysseyApp {
     this.closeSettingsBtn = document.getElementById('btn-close-settings');
     this.saveSettingsBtn = document.getElementById('btn-save-settings');
     this.gistTokenInput = document.getElementById('input-gist-token');
+    this.gistIdInput = document.getElementById('input-gist-id');
     this.btnExportJson = document.getElementById('btn-export-json');
     this.btnImportJson = document.getElementById('btn-import-json');
     this.btnResetProgress = document.getElementById('btn-reset-progress');
@@ -138,65 +139,86 @@ class MindOdysseyApp {
     }
 
     // Audio Toggle
-    this.muteBtn.addEventListener('click', () => {
-      const isMuted = window.soundEngine.toggleMute();
-      this.muteBtn.classList.toggle('active', !isMuted);
-      this.showToast(isMuted ? '🔇 音效已靜音' : '🔊 音效已開啟');
-    });
+    if (this.muteBtn) {
+      this.updateSoundBtn();
+      this.muteBtn.addEventListener('click', () => {
+        const isMuted = window.soundEngine.toggleMute();
+        this.updateSoundBtn();
+        this.showToast(isMuted ? '🔇 音效已靜音' : '🔊 音效已開啟');
+      });
+    }
 
     // Stage 1 -> 2
-    this.btnToCore.addEventListener('click', () => {
-      window.soundEngine.playCardFlip();
-      this.setStep(2);
-    });
+    if (this.btnToCore) {
+      this.btnToCore.addEventListener('click', () => {
+        window.soundEngine.playCardFlip();
+        this.setStep(2);
+      });
+    }
 
     // Stage 2 -> 3
-    this.btnToTakeaway.addEventListener('click', () => {
-      window.soundEngine.playCardFlip();
-      this.setStep(3);
-    });
+    if (this.btnToTakeaway) {
+      this.btnToTakeaway.addEventListener('click', () => {
+        window.soundEngine.playCardFlip();
+        this.setStep(3);
+      });
+    }
 
-    this.btnBackToDilemma.addEventListener('click', () => {
-      window.soundEngine.playCardFlip();
-      this.setStep(1);
-    });
+    if (this.btnBackToDilemma) {
+      this.btnBackToDilemma.addEventListener('click', () => {
+        window.soundEngine.playCardFlip();
+        this.setStep(1);
+      });
+    }
 
     // Stage 3 -> Complete & Reveal Doors
-    this.btnCompleteNode.addEventListener('click', () => {
-      window.soundEngine.playUnlockNode();
-      this.completeActiveNode();
-    });
+    if (this.btnCompleteNode) {
+      this.btnCompleteNode.addEventListener('click', () => {
+        window.soundEngine.playUnlockNode();
+        this.completeActiveNode();
+      });
+    }
 
-    this.btnBackToCore.addEventListener('click', () => {
-      window.soundEngine.playCardFlip();
-      this.setStep(2);
-    });
+    if (this.btnBackToCore) {
+      this.btnBackToCore.addEventListener('click', () => {
+        window.soundEngine.playCardFlip();
+        this.setStep(2);
+      });
+    }
 
     // Pass Doors (Random exploration)
-    this.btnPassDoors.addEventListener('click', () => {
-      window.soundEngine.playPortalSelect();
-      this.handlePassDoors();
-    });
+    if (this.btnPassDoors) {
+      this.btnPassDoors.addEventListener('click', () => {
+        window.soundEngine.playPortalSelect();
+        this.handlePassDoors();
+      });
+    }
 
     // Jargon close
-    this.jargonCloseBtn.addEventListener('click', () => {
-      this.jargonBubble.classList.remove('active');
-    });
+    if (this.jargonCloseBtn) {
+      this.jargonCloseBtn.addEventListener('click', () => {
+        this.jargonBubble.classList.remove('active');
+      });
+    }
 
     document.addEventListener('click', (e) => {
-      if (this.jargonBubble.classList.contains('active') && !this.jargonBubble.contains(e.target) && !e.target.classList.contains('jargon-term')) {
+      if (this.jargonBubble && this.jargonBubble.classList.contains('active') && !this.jargonBubble.contains(e.target) && !e.target.classList.contains('jargon-term')) {
         this.jargonBubble.classList.remove('active');
       }
     });
 
     // Settings Modal
-    this.settingsBtn.addEventListener('click', () => {
-      this.openSettings();
-    });
+    if (this.settingsBtn) {
+      this.settingsBtn.addEventListener('click', () => {
+        this.openSettings();
+      });
+    }
 
-    this.closeSettingsBtn.addEventListener('click', () => {
-      this.settingsModal.classList.remove('active');
-    });
+    if (this.closeSettingsBtn) {
+      this.closeSettingsBtn.addEventListener('click', () => {
+        if (this.settingsModal) this.settingsModal.classList.remove('active');
+      });
+    }
 
     this.saveSettingsBtn.addEventListener('click', () => {
       const geminiVal = this.geminiKeyInput ? this.geminiKeyInput.value : '';
@@ -295,9 +317,67 @@ class MindOdysseyApp {
     }
   }
 
+  updateSoundBtn() {
+    if (!this.muteBtn) return;
+    const isMuted = window.soundEngine ? window.soundEngine.isMuted : false;
+    this.muteBtn.classList.toggle('active', !isMuted);
+    this.muteBtn.title = isMuted ? '音效已靜音（點擊開啟）' : '音效已開啟（點擊靜音）';
+    this.muteBtn.innerHTML = isMuted
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>`
+      : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>`;
+  }
+
+  renderRadar() {
+    if (!this.radarDomainsContainer) return;
+    this.radarDomainsContainer.innerHTML = '';
+    const dynamicDomains = this.getDynamicDomains();
+    const state = window.syncManager.state;
+
+    dynamicDomains.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'radar-domain-card tactical-frame';
+      card.style.border = `1px solid ${d.color}44`;
+      card.style.background = 'rgba(15, 23, 42, 0.6)';
+      card.style.borderRadius = '6px';
+      card.style.padding = '12px';
+      card.style.marginBottom = '8px';
+
+      const nodesInDomain = window.MIND_DATABASE.filter(n => n.domainId === d.id);
+      const litCount = nodesInDomain.filter(n => state.completedNodes.includes(n.id)).length;
+
+      card.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px; color: ${d.color}; font-weight: 700;">
+            <span>${d.glyph}</span>
+            <span style="font-size: 13px;">${d.name}</span>
+          </div>
+          <span style="font-size: 10px; font-family: var(--font-mono); color: ${d.color}; background: ${d.color}15; border: 1px solid ${d.color}33; padding: 2px 6px; border-radius: 3px;">
+            ${litCount} / ${nodesInDomain.length} 點亮
+          </span>
+        </div>
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 6px;">${d.desc}</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+          ${d.models.map(m => `
+            <span style="font-size: 10px; padding: 2px 6px; border-radius: 3px; background: rgba(255,255,255,0.05); color: #cbd5e1; font-family: var(--font-mono);">
+              ${m.cn}
+            </span>
+          `).join('')}
+        </div>
+      `;
+      this.radarDomainsContainer.appendChild(card);
+    });
+  }
+
   openRadar() {
     this.renderRadar();
-    this.radarModal.classList.add('active');
+    if (this.radarModal) this.radarModal.classList.add('active');
   }
 
   switchView(viewId) {

@@ -1138,23 +1138,27 @@ body {
   line-height: 1.4;
 }
 
-/* Toast Notifications */
+/* Toast Notifications (Safely positioned below iPhone Dynamic Island & Header HUD) */
 .toast-msg {
   position: fixed;
-  top: 20px;
+  top: calc(14px + env(safe-area-inset-top, 0px) + 56px);
   left: 50%;
-  transform: translateX(-50%) translateY(-20px);
-  background: rgba(16, 22, 38, 0.95);
+  transform: translateX(-50%) translateY(-10px);
+  background: rgba(16, 22, 38, 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--accent-cyan);
   border-radius: var(--radius-full);
-  padding: 8px 18px;
+  padding: 8px 20px;
   font-size: 12px;
+  font-weight: 600;
   color: var(--text-primary);
-  box-shadow: var(--shadow-glow-cyan);
-  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 16px rgba(56, 189, 248, 0.35);
+  z-index: 2000;
   opacity: 0;
   pointer-events: none;
-  transition: var(--transition-spring);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
 
 .toast-msg.show {

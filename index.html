@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Super Mind Odyssey - 心智拓荒者 | 3分鐘跨域心智模型</title>
+  
+  <!-- PWA Manifest & Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#07090e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="每日3分鐘搞懂跨領域核心心智模型。無術語負債、情境抉擇開局、課後三扇門探險、零成本雲端同步。">
+
+  <!-- Typography: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="src/styles/main.css">
+</head>
+<body>
+  <!-- Ambient Cosmic Starfield Background Canvas -->
+  <canvas id="cosmic-canvas"></canvas>
+
+  <div id="app-container">
+    
+    <!-- Top HUD: Explorer Dashboard Header -->
+    <header class="hud-header">
+      <div class="hud-profile">
+        <div class="rank-badge">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="explorer-info">
+          <div class="explorer-title">
+            <span class="ship-callsign">SUPER MIND ODYSSEY</span>
+            <span class="explorer-level-tag" id="hud-level-tag">LV.1 PIONEER</span>
+          </div>
+          <div class="explorer-stats">
+            <span class="hud-telemetry" id="hud-streak-count">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              DAY // 01
+            </span>
+            <span class="hud-divider">|</span>
+            <span class="hud-telemetry" id="hud-relic-count">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              RELICS // 0
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-actions">
+        <button class="hud-btn active" id="btn-toggle-sound" title="切換聲學信號" aria-label="切換音效">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+        </button>
+        <button class="hud-btn" id="btn-open-radar" title="深空探索雷達" aria-label="思維雷達">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle>
+            <circle cx="12" cy="12" r="4"></circle>
+            <line x1="12" y1="3" x2="12" y2="12"></line>
+            <line x1="12" y1="12" x2="19" y2="15"></line>
+          </svg>
+        </button>
+        <button class="hud-btn" id="btn-open-settings" title="艦載系統設定" aria-label="設定">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN VIEW 1: Daily Expedition Terminal (今日拓荒終端) -->
+    <main class="page-view active" id="view-expedition">
+      
+      <!-- Sector Navigation Header -->
+      <section class="expedition-hero tactical-frame">
+        <div class="terminal-corner tl"></div>
+        <div class="terminal-corner tr"></div>
+        <div class="terminal-corner bl"></div>
+        <div class="terminal-corner br"></div>
+
+        <div class="hero-tags-row">
+          <div class="hero-domain-tag" id="exp-hero-domain">博弈星雲 // GAME THEORY</div>
+          <div class="hero-en-tag" id="exp-hero-en">Boxed Pigs Game</div>
+        </div>
+        <h1 class="hero-title" id="exp-hero-title">智豬博弈：弱者如何坐享其成？</h1>
+        <p class="hero-subtitle" id="exp-hero-subtitle">當行動需要付出成本，弱小者反而能逼強者替自己打工。</p>
+      </section>
+
+      <!-- Mission Stage Progress Bar -->
+      <div class="expedition-stepper">
+        <div class="step-indicator">
+          <div class="step-dot active" title="階段 1: 戰術抉擇">01 抉擇</div>
+          <div class="step-line"></div>
+          <div class="step-dot" title="階段 2: 信號解碼">02 解碼</div>
+          <div class="step-line"></div>
+          <div class="step-dot" title="階段 3: 實戰手冊">03 戰術</div>
+        </div>
+        <div class="step-timer" id="exp-reading-time">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          TELEMETRY // 150s
+        </div>
+      </div>
+
+      <!-- Content Stages -->
+      <div class="card-stack">
+
+        <!-- Stage 1: Tactical Divergence (遭遇戰術抉擇) -->
+        <article class="stage-card tactical-frame" id="stage-dilemma">
+          <div class="terminal-corner tl"></div>
+          <div class="terminal-corner tr"></div>
+          <div class="terminal-corner bl"></div>
+          <div class="terminal-corner br"></div>
+
+          <div class="stage-badge">
+            <span class="tech-label">PHASE 01</span>
+            <span class="hud-divider">/</span>
+            <span>遭遇戰術抉擇 // TACTICAL DIVERGENCE</span>
+          </div>
+
+          <div class="dilemma-box">
+            <div class="dilemma-header-row">
+              <span class="tech-stamp">ANOMALY LOGBOOK // 態勢簡報</span>
+              <span class="tech-code">ID: BO-PIGS-01</span>
+            </div>
+            <div class="dilemma-prompt" id="dilemma-prompt-text">
+              載入戰術情境中...
+            </div>
+            <div class="dilemma-options" id="dilemma-options-container">
+              <!-- Dynamically populated tactical command options -->
+            </div>
+            <div class="dilemma-result-reveal" id="dilemma-result-box">
+              <!-- Dynamically revealed fleet consensus -->
+            </div>
+          </div>
+
+          <div class="stage-footer-actions">
+            <button class="btn-action-primary" id="btn-to-core" disabled>
+              <span>繼續推進 // 解碼黑盒子本質信號</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </article>
+
+        <!-- Stage 2: Signal Decryption & Jargon Matrix (黑盒子信號解構) -->
+        <article class="stage-card tactical-frame" id="stage-core" style="display: none;">
+          <div class="terminal-corner tl"></div>
+          <div class="terminal-corner tr"></div>
+          <div class="terminal-corner bl"></div>
+          <div class="terminal-corner br"></div>
+
+          <div class="stage-badge">
+            <span class="tech-label">PHASE 02</span>
+            <span class="hud-divider">/</span>
+            <span>黑盒子信號解碼 // SIGNAL DECRYPTION</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div class="axiom-vault-box">
+              <div class="axiom-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                底層第一性原理 // CORE AXIOM
+              </div>
+              <p class="axiom-content" id="core-essence-text"></p>
+            </div>
+
+            <div class="holodeck-box">
+              <div class="holodeck-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                全息推演沙盤 (點擊虛線可啟動術語解碼)：
+              </div>
+              <div class="stage-content" id="core-analogy-text"></div>
+            </div>
+
+            <!-- Jargon Lexicon Strip (專有名詞雙語解密儀) -->
+            <div class="jargon-lexicon-box" id="jargon-lexicon-box">
+              <div class="jargon-lexicon-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>術語解碼矩陣 // BILINGUAL LEXICON (點擊查看白話釋義)</span>
+              </div>
+              <div class="jargon-lexicon-chips" id="jargon-lexicon-chips">
+                <!-- Dynamically populated bilingual jargon chips -->
+              </div>
+            </div>
+          </div>
+
+          <div class="stage-footer-actions">
+            <button class="btn-action-ghost" id="btn-back-to-dilemma">返回戰術分歧</button>
+            <button class="btn-action-primary" id="btn-to-takeaway">
+              <span>實裝防身戰術 // ARTIFACT SALVAGE</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </article>
+
+        <!-- Stage 3: Survival Doctrine (拓荒者實戰手冊) -->
+        <article class="stage-card tactical-frame" id="stage-takeaway" style="display: none;">
+          <div class="terminal-corner tl"></div>
+          <div class="terminal-corner tr"></div>
+          <div class="terminal-corner bl"></div>
+          <div class="terminal-corner br"></div>
+
+          <div class="stage-badge">
+            <span class="tech-label">PHASE 03</span>
+            <span class="hud-divider">/</span>
+            <span>拓荒者實戰手冊 // SURVIVAL DOCTRINE</span>
+          </div>
+
+          <div class="doctrine-box">
+            <div class="doctrine-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>走入現實戰場如何執行此心智策略？</span>
+            </div>
+            <div class="stage-content" id="takeaway-action-text"></div>
+          </div>
+
+          <!-- Artifact Reward Preview Banner -->
+          <div class="artifact-reward-preview" id="artifact-reward-preview">
+            <div class="artifact-icon-display" id="artifact-preview-icon">
+              <!-- SVG icon injected dynamically -->
+            </div>
+            <div class="artifact-info-display">
+              <div class="artifact-status-tag">✦ 本星系思維神器待打撈</div>
+              <div class="artifact-name-display" id="artifact-preview-name">搭便車指南針</div>
+              <div class="artifact-perk-display">+15 戰略理性 // 破局直覺強化</div>
+            </div>
+          </div>
+
+          <!-- Tactical Deep Inquiry Terminal (戰術深度追問終端) -->
+          <div class="inquiry-terminal tactical-frame" id="inquiry-terminal">
+            <div class="terminal-corner tl"></div>
+            <div class="terminal-corner tr"></div>
+            <div class="terminal-corner bl"></div>
+            <div class="terminal-corner br"></div>
+
+            <div class="inquiry-header-row">
+              <div class="inquiry-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>戰術深度追問終端 // DEEP INQUIRY TERMINAL</span>
+              </div>
+              <span class="inquiry-badge">FEYNMAN Q&A</span>
+            </div>
+
+            <p class="inquiry-intro">看完仍有困惑或好奇？點選下方速問晶片或輸入你的問題，立即獲得 120 字費曼本質拆解：</p>
+
+            <!-- Quick Inquiry Chips -->
+            <div class="inquiry-chips-wrap" id="inquiry-chips-container">
+              <!-- Dynamically populated based on active node -->
+            </div>
+
+            <!-- Custom Question Input -->
+            <div class="inquiry-input-row">
+              <input type="text" class="inquiry-input" id="inquiry-custom-input" placeholder="例如：為什麼偏偏叫這名字？現實中有三個對手會怎樣？" maxlength="100">
+              <button class="inquiry-submit-btn" id="btn-submit-inquiry">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <span>發射追問</span>
+              </button>
+            </div>
+
+            <!-- Live Inquiry Response Box -->
+            <div class="inquiry-response-box" id="inquiry-response-box">
+              <div class="inquiry-response-header">
+                <span id="inquiry-response-title">// 費曼思維解碼通訊 (DECRYPTED BRIEFING)</span>
+                <span style="color: #64748b; font-size: 10px;" id="inquiry-source-tag">TACTICAL AI</span>
+              </div>
+              <div class="inquiry-response-text" id="inquiry-response-text">
+                解析中...
+              </div>
+            </div>
+          </div>
+
+          <div class="stage-footer-actions">
+            <button class="btn-action-ghost" id="btn-back-to-core">返回信號解碼</button>
+            <button class="btn-action-primary btn-unlock-beacon" id="btn-complete-node">
+              <span>✦ 點亮星系節點並打撈思維神器</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- Post-Lesson: Hyperlane Warp Gates (曲速躍遷星門 CYOA) -->
+        <section class="three-doors-section tactical-frame" id="three-doors-section">
+          <div class="terminal-corner tl"></div>
+          <div class="terminal-corner tr"></div>
+          <div class="terminal-corner bl"></div>
+          <div class="terminal-corner br"></div>
+
+          <div class="warp-beacon-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="4 2"/>
+              <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2" fill="rgba(56, 189, 248, 0.2)"/>
+            </svg>
+          </div>
+          <h2 class="three-doors-title">星系節點已點亮 // 選擇明日曲速躍遷航向</h2>
+          <p class="three-doors-desc">HYPERLANE GATES ONLINE: 鎖定感興趣的引力信號開啟傳送</p>
+
+          <div class="doors-grid" id="doors-list-container">
+            <!-- Dynamically populated Warp Doors -->
+          </div>
+
+          <button class="door-pass-btn" id="btn-pass-doors">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            盲跳躍遷 // EMERGENCY WARP TO UNCHARTED HORIZON
+          </button>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- MAIN VIEW 2: Fog of War Constellation Starmap (迷霧星圖) -->
+    <section class="page-view" id="view-map">
+      <div class="map-view-container">
+        
+        <div class="map-header-card tactical-frame">
+          <div class="terminal-corner tl"></div>
+          <div class="terminal-corner tr"></div>
+          <div class="terminal-corner bl"></div>
+          <div class="terminal-corner br"></div>
+
+          <div class="map-stats-row">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="tech-badge">GALAXY RECON</span>
+              <span style="font-weight: 700; color: #f8fafc; font-size: 13px;">星系拓荒雷達圖譜</span>
+            </div>
+            <span id="map-progress-text" class="tech-telemetry-cyan">已點亮 1 / 11 節點</span>
+          </div>
+          <div class="map-progress-bar-bg">
+            <div class="map-progress-bar-fill" id="map-progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- SVG Constellation Chart -->
+        <div class="constellation-board" id="map-constellation-sectors">
+          <!-- Dynamically populated domain sectors, SVG connections & orbital nodes -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- MAIN VIEW 3: Explorer Dossier & Relics Vault (拓荒艦長檔案與神器庫) -->
+    <section class="page-view" id="view-profile">
+      <div class="profile-container">
+        
+        <!-- Commander Dossier & Cognitive Radar -->
+        <div class="persona-card tactical-frame">
+          <div class="terminal-corner tl"></div>
+          <div class="terminal-corner tr"></div>
+          <div class="terminal-corner bl"></div>
+          <div class="terminal-corner br"></div>
+
+          <div class="persona-header-row">
+            <div class="persona-badge">COMMANDER DOSSIER // 拓荒決策風格</div>
+            <span class="tech-stamp">CLASS: STRATEGIST</span>
+          </div>
+          
+          <h2 class="persona-name" id="persona-title">冷靜反骨策略家</h2>
+          <p class="persona-desc" id="persona-desc">
+            你在多數困境中傾向尋找非典型最優解，不隨波逐流，懂得適時保存體力與及時止損。
+          </p>
+
+          <!-- 4-Axis Cognitive Radar Chart Canvas -->
+          <div class="cognitive-radar-box">
+            <div class="radar-box-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22 12 2"/></svg>
+              <span>四維心智雷達圖譜 // COGNITIVE ATTRIBUTES</span>
+            </div>
+            <div class="radar-canvas-container">
+              <canvas id="cognitive-radar-canvas" width="280" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mind Relics Vault -->
+        <div>
+          <div class="relics-vault-header">
+            <div class="relics-vault-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              <span>思維神器陳列室 // ARTIFACTS VAULT</span>
+            </div>
+            <span class="tech-code" id="relics-collected-counter">COLLECTED: 0/11</span>
+          </div>
+          <div class="relics-grid" id="relics-list-grid">
+            <!-- Dynamically rendered 3D tilt relic cases -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Dotted Jargon Floating Bubble (即時名詞氣泡字典) -->
+    <aside class="jargon-bubble" id="jargon-bubble-popover">
+      <div class="jargon-bubble-header">
+        <div class="jargon-bubble-title" id="jargon-title-text">
+          💡 名詞秒懂
+        </div>
+        <button class="jargon-close-btn" id="btn-close-jargon" aria-label="關閉">✕</button>
+      </div>
+      <div class="jargon-bubble-body" id="jargon-desc-text">
+        點擊的名詞白話解釋將在此處呈現。
+      </div>
+    </aside>
+
+    <!-- Settings & Sync Modal -->
+    <div class="modal-overlay" id="modal-settings">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">艦載通訊與雲端同步設定 // TELEMETRY & SYNC</h3>
+          <button class="jargon-close-btn" id="btn-close-settings">✕</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-gist-token">GitHub Personal Access Token (PAT)</label>
+          <input type="password" id="input-gist-token" class="form-input" placeholder="ghp_xxxxxxxxxxxxxx">
+          <span class="form-help">僅需勾選 'gist' 權限即可將進度無痛備份至個人 GitHub Gist。</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-gist-id">GitHub Gist ID</label>
+          <input type="text" id="input-gist-id" class="form-input" placeholder="例: 7f8a9b0c1d2e3f...">
+          <span class="form-help">建立一個私有 Gist 後將網址後段 ID 貼在此處。</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-gemini-key">Gemini API Key (優先調度，Google AI Studio)</label>
+          <input type="password" id="input-gemini-key" class="form-input" placeholder="貼上你的 Gemini API Key">
+          <span class="form-help">純本機存儲。啟用後，發射思維探測器將直接呼叫 Gemini 即時拓展任意新領域節點。</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-openrouter-key">OpenRouter API Key (雙軌備援，自動切換)</label>
+          <input type="password" id="input-openrouter-key" class="form-input" placeholder="貼上你的 OpenRouter Key">
+          <span class="form-help">純本機存儲。當 Gemini 配額暫時受限時，作為無縫自動備援線路。</span>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-action-primary" id="btn-sync-now" style="flex: 1; padding: 10px;">
+            立即雲端同步 (Gist)
+          </button>
+          <button class="btn-action-ghost" id="btn-save-settings" style="padding: 10px 16px;">
+            儲存設定
+          </button>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--glass-border);">
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-action-ghost" id="btn-export-json" style="flex: 1; font-size: 12px;">
+            匯出本機進度 JSON
+          </button>
+          <button class="btn-action-ghost" id="btn-import-json" style="flex: 1; font-size: 12px;">
+            匯入進度備份
+          </button>
+          <input type="file" id="file-import-input" accept=".json" style="display: none;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Topic Exploration Radar Modal -->
+    <div class="modal-overlay" id="radar-modal">
+      <div class="modal-card radar-card">
+        <div class="modal-header">
+          <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="12"/><line x1="12" y1="12" x2="19" y2="15"/></svg>
+            <span>思維疆界探索雷達 // UNCHARTED TOPIC RADAR</span>
+          </div>
+          <button class="btn-close-modal" id="btn-close-radar">&times;</button>
+        </div>
+        
+        <p class="radar-intro">鳥瞰不設限的跨領域心智模型星雲（物理學、演化論、複雜系統、統計學等），或發射 AI 探測器向未知學科自我擴張。</p>
+        
+        <!-- Radar Domains Grid -->
+        <div class="radar-domains-grid" id="radar-domains-container">
+          <!-- Dynamically populated domains -->
+        </div>
+
+        <!-- Custom AI Probe Input -->
+        <div class="custom-probe-box">
+          <div class="probe-title">發射思維探測器 // AUTONOMOUS KNOWLEDGE EXPANSION</div>
+          <p class="probe-hint">輸入任何你好奇的現象、困境或學科，即刻合成 3 分鐘費曼模型並拓寬星圖：</p>
+          <div class="probe-input-row">
+            <input type="text" id="probe-input" placeholder="例如：哲學的奧卡姆剃刀、資訊論的夏農熵、生態學的狼群效應..." maxlength="80">
+            <button class="btn-action-primary" id="btn-launch-probe" style="padding: 8px 16px; font-size: 13px; white-space: nowrap;">發射探測</button>
+          </div>
+          <div class="radar-quick-tags" id="radar-quick-tags" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+            <span style="font-size: 11px; color: #94a3b8;">✦ 跨域拓荒靈感：</span>
+            <button class="probe-tag-btn" data-topic="哲學與認識論：奧卡姆剃刀" data-domain="哲學思考">哲學・奧卡姆剃刀</button>
+            <button class="probe-tag-btn" data-topic="資訊論：夏農資訊熵" data-domain="資訊科學">資訊論・夏農熵</button>
+            <button class="probe-tag-btn" data-topic="軍事戰略：OODA決策循環" data-domain="決策戰略">戰略・OODA循環</button>
+            <button class="probe-tag-btn" data-topic="控制論：正負反饋調節迴路" data-domain="控制工程">控制論・反饋調節</button>
+            <button class="probe-tag-btn" data-topic="生態系統學：頂級捕食者引發的營養級瀑布" data-domain="生態系統學">生態學・營養級聯</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Toast Notification -->
+    <div class="toast-msg" id="toast-msg">提示訊息</div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="view-expedition">
+        <svg viewBox="0 0 24 24">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>今日拓荒</span>
+      </button>
+
+      <button class="nav-item" data-view="view-map">
+        <svg viewBox="0 0 24 24">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+          <line x1="8" y1="2" x2="8" y2="18"></line>
+          <line x1="16" y1="6" x2="16" y2="22"></line>
+        </svg>
+        <span>迷霧星圖</span>
+      </button>
+
+      <button class="nav-item" data-view="view-profile">
+        <svg viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>探險日誌</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="src/scripts/starfield.js"></script>
+  <script src="src/scripts/audio.js"></script>
+  <script src="src/scripts/database.js"></script>
+  <script src="src/scripts/sync.js"></script>
+  <script src="src/scripts/app.js"></script>
+
+  <!-- Service Worker Registration for PWA Offline Cache -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.log('SW registration skipped in local dev or error:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

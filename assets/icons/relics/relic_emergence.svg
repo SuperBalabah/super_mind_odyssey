@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="emergenceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc" />
+      <stop offset="50%" stop-color="#9333ea" />
+      <stop offset="100%" stop-color="#581c87" />
+    </linearGradient>
+    <filter id="purpleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Background Network Ring -->
+  <circle cx="50" cy="50" r="42" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="2,4" opacity="0.4" />
+  <circle cx="50" cy="50" r="36" fill="#2e1065" fill-opacity="0.6" stroke="#c084fc" stroke-width="1" />
+
+  <!-- Distributed Hexagon Web (Swarm Emergence) -->
+  <polygon points="50,22 74,36 74,64 50,78 26,64 26,36" fill="none" stroke="url(#emergenceGrad)" stroke-width="2.5" filter="url(#purpleGlow)" />
+  <polygon points="50,34 62,42 62,58 50,66 38,58 38,42" fill="url(#emergenceGrad)" opacity="0.6" />
+
+  <!-- Node points interconnected -->
+  <circle cx="50" cy="22" r="3" fill="#f5d0fe" />
+  <circle cx="74" cy="36" r="3" fill="#f5d0fe" />
+  <circle cx="74" cy="64" r="3" fill="#f5d0fe" />
+  <circle cx="50" cy="78" r="3" fill="#f5d0fe" />
+  <circle cx="26" cy="64" r="3" fill="#f5d0fe" />
+  <circle cx="26" cy="36" r="3" fill="#f5d0fe" />
+  <circle cx="50" cy="50" r="4" fill="#ffffff" filter="url(#purpleGlow)" />
+
+  <line x1="50" y1="22" x2="50" y2="50" stroke="#e9d5ff" stroke-width="1" opacity="0.8" />
+  <line x1="74" y1="36" x2="50" y2="50" stroke="#e9d5ff" stroke-width="1" opacity="0.8" />
+  <line x1="74" y1="64" x2="50" y2="50" stroke="#e9d5ff" stroke-width="1" opacity="0.8" />
+  <line x1="50" y1="78" x2="50" y2="50" stroke="#e9d5ff" stroke-width="1" opacity="0.8" />
+  <line x1="26" y1="64" x2="50" y2="50" stroke="#e9d5ff" stroke-width="1" opacity="0.8" />
+  <line x1="26" y1="36" x2="50" y2="50" stroke="#e9d5ff" stroke-width="1" opacity="0.8" />
+</svg>

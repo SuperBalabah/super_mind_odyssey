@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="bioGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <filter id="emeraldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Background Aura -->
+  <circle cx="50" cy="50" r="42" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.4" />
+  <circle cx="50" cy="50" r="36" fill="#064e3b" fill-opacity="0.6" stroke="#34d399" stroke-width="1" />
+  
+  <!-- Evolutionary Dual Wing (Hawk sharp feather vs Dove gentle plume) -->
+  <path d="M50,78 C44,65 32,50 24,36 C34,36 42,42 46,50 C44,40 40,30 32,22 C44,24 50,34 50,45 C50,34 56,24 68,22 C60,30 56,40 54,50 C58,42 66,36 76,36 C68,50 56,65 50,78 Z" 
+        fill="url(#bioGrad)" filter="url(#emeraldGlow)" />
+
+  <!-- Central Balance Core / Gene DNA node -->
+  <circle cx="50" cy="50" r="4.5" fill="#f8fafc" stroke="#10b981" stroke-width="2" />
+  <path d="M50,20 L50,80" stroke="#a7f3d0" stroke-width="1.5" stroke-dasharray="2,3" />
+</svg>

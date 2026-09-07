@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="lemon-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD60A"/>
+      <stop offset="60%" stop-color="#FFC300"/>
+      <stop offset="100%" stop-color="#F77F00"/>
+    </linearGradient>
+    <radialGradient id="eye-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD60A" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#FFD60A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="url(#eye-glow)"/>
+  <!-- Ancient Eye of Insight Outline -->
+  <path d="M16 50 Q 50 18 84 50 Q 50 82 16 50 Z" 
+        fill="#0B132B" stroke="url(#lemon-gold)" stroke-width="3"/>
+  <!-- Inner Iris Ring -->
+  <circle cx="50" cy="50" r="16" stroke="#FFD60A" stroke-width="2" stroke-dasharray="3,2"/>
+  <!-- Golden Pupil with Faceted Diamond (Gem of Authenticity) -->
+  <polygon points="50,38 60,50 50,62 40,50" fill="url(#lemon-gold)"/>
+  <polygon points="50,44 55,50 50,56 45,50" fill="#FFF"/>
+  <!-- Sunray Radiance (Dispersing Asymmetric Fog) -->
+  <line x1="50" y1="20" x2="50" y2="12" stroke="#FFD60A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="72" y1="28" x2="78" y2="22" stroke="#FFD60A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="28" y1="28" x2="22" y2="22" stroke="#FFD60A" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="crystal-glass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E0AAFF"/>
+      <stop offset="50%" stop-color="#C77DFF"/>
+      <stop offset="100%" stop-color="#7B2CBF"/>
+    </linearGradient>
+    <radialGradient id="prism-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C77DFF" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#C77DFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="url(#prism-glow)"/>
+  <!-- Mirror Handle -->
+  <path d="M50 68 L50 88 M46 88 L54 88" stroke="url(#crystal-glass)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="50" cy="88" r="3" fill="#E0AAFF"/>
+  <!-- Octagonal / Heptagonal Ornate Frame -->
+  <polygon points="50,14 74,24 82,48 74,70 50,78 26,70 18,48 26,24" 
+           fill="#10002B" stroke="url(#crystal-glass)" stroke-width="3"/>
+  <!-- Inner Reflective Surface -->
+  <polygon points="50,20 68,28 74,48 68,64 50,70 32,64 26,48 32,28" 
+           fill="#240046" stroke="#E0AAFF" stroke-width="1"/>
+  <!-- Prismatic Refraction Highlights (Flawless surface) -->
+  <path d="M36 30 L64 62" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 26 L68 52" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-linecap="round"/>
+  <!-- Central Sparkle -->
+  <polygon points="50,42 53,48 59,50 53,52 50,58 47,52 41,50 47,48" fill="#FFF"/>
+</svg>

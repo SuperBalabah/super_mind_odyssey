@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="scale-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD166"/>
+      <stop offset="100%" stop-color="#F72585"/>
+    </linearGradient>
+    <radialGradient id="scale-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background Glow -->
+  <circle cx="50" cy="50" r="46" fill="url(#scale-glow)"/>
+  <!-- Central Pillar & Base -->
+  <path d="M48 24 L52 24 L52 76 L48 76 Z" fill="#94A3B8"/>
+  <path d="M38 76 L62 76 L66 84 L34 84 Z" fill="url(#scale-gold)"/>
+  <!-- Top Finial Pivot -->
+  <circle cx="50" cy="24" r="5" fill="url(#scale-gold)" stroke="#FFF" stroke-width="1"/>
+  <!-- Horizontal Balance Beam -->
+  <line x1="22" y1="36" x2="78" y2="36" stroke="url(#scale-gold)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Suspended Chains -->
+  <line x1="25" y1="36" x2="18" y2="56" stroke="#CBD5E1" stroke-width="1.5"/>
+  <line x1="25" y1="36" x2="32" y2="56" stroke="#CBD5E1" stroke-width="1.5"/>
+  <line x1="75" y1="36" x2="68" y2="56" stroke="#CBD5E1" stroke-width="1.5"/>
+  <line x1="75" y1="36" x2="82" y2="56" stroke="#CBD5E1" stroke-width="1.5"/>
+  <!-- Pans -->
+  <path d="M14 56 Q25 68 36 56 Z" fill="url(#scale-gold)" stroke="#FFD166" stroke-width="1"/>
+  <path d="M64 56 Q75 68 86 56 Z" fill="url(#scale-gold)" stroke="#FFD166" stroke-width="1"/>
+  <!-- Glowing Crystals in Pans (Choice Weights) -->
+  <circle cx="25" cy="53" r="4" fill="#48CAE4"/>
+  <circle cx="75" cy="53" r="4" fill="#F72585"/>
+</svg>

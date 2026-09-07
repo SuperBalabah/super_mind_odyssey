@@ -1,0 +1,37 @@
+name: Mind Odyssey Daily Expedition Pipeline
+
+on:
+  schedule:
+    # Runs every day at 02:00 UTC (10:00 AM Taiwan Time)
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub UI
+
+jobs:
+  expand-knowledge-fog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate New Daily Mind Card (Free Multi-Provider)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          node scripts/generate_cards.js --domain="行為經濟學"
+
+      - name: Commit & Push Changes
+        run: |
+          git config --global user.name "Mind Odyssey Automated Scribe"
+          git config --global user.email "bot@mindodyssey.local"
+          git add src/scripts/database.js || true
+          git commit -m "chore(expedition): unlock new daily mental model into knowledge fog" || echo "No changes to commit"
+          git push origin main || echo "Push skipped"

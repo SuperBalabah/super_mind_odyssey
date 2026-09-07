@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="frame-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFEAA7"/>
+      <stop offset="100%" stop-color="#E17055"/>
+    </linearGradient>
+    <linearGradient id="starlight-sand" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#48CAE4"/>
+      <stop offset="100%" stop-color="#7209B7"/>
+    </linearGradient>
+    <radialGradient id="hourglass-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#48CAE4" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#48CAE4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="url(#hourglass-glow)"/>
+  <!-- Top & Bottom Metal Caps -->
+  <rect x="26" y="16" width="48" height="6" rx="2" fill="url(#frame-gold)"/>
+  <rect x="26" y="78" width="48" height="6" rx="2" fill="url(#frame-gold)"/>
+  <!-- Side Support Rods -->
+  <line x1="30" y1="22" x2="30" y2="78" stroke="url(#frame-gold)" stroke-width="2.5"/>
+  <line x1="70" y1="22" x2="70" y2="78" stroke="url(#frame-gold)" stroke-width="2.5"/>
+  <!-- Glass Bulb Contour -->
+  <path d="M34 22 C34 38, 46 46, 48 50 C46 54, 34 62, 34 78 L66 78 C66 62, 54 54, 52 50 C54 46, 66 38, 66 22 Z" 
+        fill="#0D1322" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <!-- Sand in Top Chamber (Depleting) -->
+  <path d="M38 32 C38 42, 48 46, 50 49 C52 46, 62 42, 62 32 Z" fill="url(#starlight-sand)" opacity="0.85"/>
+  <!-- Falling Sand Stream -->
+  <line x1="50" y1="49" x2="50" y2="68" stroke="#48CAE4" stroke-width="1.5" stroke-dasharray="1,2"/>
+  <!-- Sand in Bottom Chamber (Accumulated Reality) -->
+  <path d="M38 76 C40 68, 60 68, 62 76 Z" fill="url(#starlight-sand)"/>
+  <!-- Sparkling Temporal Star in Center -->
+  <circle cx="50" cy="50" r="2" fill="#FFF"/>
+</svg>

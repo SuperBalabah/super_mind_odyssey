@@ -414,137 +414,136 @@
         點擊的名詞白話解釋將在此處呈現。
       </div>
     </aside>
+  </div> <!-- /#app-container -->
 
-    <!-- Settings & Sync Modal -->
-    <div class="modal-overlay" id="modal-settings">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3 class="modal-title">艦載通訊與雲端同步設定 // TELEMETRY & SYNC</h3>
-          <button class="jargon-close-btn" id="btn-close-settings">✕</button>
-        </div>
+  <!-- Bottom Navigation Bar (Docked to Viewport) -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="view-expedition">
+      <svg viewBox="0 0 24 24">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <span>今日拓荒</span>
+    </button>
 
-        <div class="form-group">
-          <label class="form-label" for="input-gist-token">GitHub Personal Access Token (PAT)</label>
-          <input type="password" id="input-gist-token" class="form-input" placeholder="ghp_xxxxxxxxxxxxxx">
-          <span class="form-help">僅需勾選 'gist' 權限即可將進度無痛備份至個人 GitHub Gist。</span>
-        </div>
+    <button class="nav-item" data-view="view-map">
+      <svg viewBox="0 0 24 24">
+        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+        <line x1="8" y1="2" x2="8" y2="18"></line>
+        <line x1="16" y1="6" x2="16" y2="22"></line>
+      </svg>
+      <span>迷霧星圖</span>
+    </button>
 
-        <div class="form-group">
-          <label class="form-label" for="input-gist-id">GitHub Gist ID</label>
-          <input type="text" id="input-gist-id" class="form-input" placeholder="例: 7f8a9b0c1d2e3f...">
-          <span class="form-help">建立一個私有 Gist 後將網址後段 ID 貼在此處。</span>
-        </div>
+    <button class="nav-item" data-view="view-profile">
+      <svg viewBox="0 0 24 24">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <span>探險日誌</span>
+    </button>
+  </nav>
 
-        <div class="form-group">
-          <label class="form-label" for="input-gemini-key">Gemini API Key (優先調度，Google AI Studio)</label>
-          <input type="password" id="input-gemini-key" class="form-input" placeholder="貼上你的 Gemini API Key">
-          <span class="form-help">純本機存儲。啟用後，發射思維探測器將直接呼叫 Gemini 即時拓展任意新領域節點。</span>
-        </div>
+  <!-- Settings & Sync Modal -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">艦載通訊與雲端同步設定 // TELEMETRY & SYNC</h3>
+        <button class="jargon-close-btn" id="btn-close-settings">✕</button>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label" for="input-openrouter-key">OpenRouter API Key (雙軌備援，自動切換)</label>
-          <input type="password" id="input-openrouter-key" class="form-input" placeholder="貼上你的 OpenRouter Key">
-          <span class="form-help">純本機存儲。當 Gemini 配額暫時受限時，作為無縫自動備援線路。</span>
-        </div>
+      <div class="form-group">
+        <label class="form-label" for="input-gist-token">GitHub Personal Access Token (PAT)</label>
+        <input type="password" id="input-gist-token" class="form-input" placeholder="ghp_xxxxxxxxxxxxxx">
+        <span class="form-help">僅需勾選 'gist' 權限即可將進度無痛備份至個人 GitHub Gist。</span>
+      </div>
 
-        <div style="display: flex; gap: 8px;">
-          <button class="btn-action-primary" id="btn-sync-now" style="flex: 1; padding: 10px;">
-            立即雲端同步 (Gist)
-          </button>
-          <button class="btn-action-ghost" id="btn-save-settings" style="padding: 10px 16px;">
-            儲存設定
-          </button>
-        </div>
+      <div class="form-group">
+        <label class="form-label" for="input-gist-id">GitHub Gist ID</label>
+        <input type="text" id="input-gist-id" class="form-input" placeholder="例: 7f8a9b0c1d2e3f...">
+        <span class="form-help">建立一個私有 Gist 後將網址後段 ID 貼在此處。</span>
+      </div>
 
-        <hr style="border: none; border-top: 1px solid var(--glass-border);">
+      <div class="form-group">
+        <label class="form-label" for="input-gemini-key">Gemini API Key (優先調度，Google AI Studio)</label>
+        <input type="password" id="input-gemini-key" class="form-input" placeholder="貼上你的 Gemini API Key">
+        <span class="form-help">純本機存儲。啟用後，發射思維探測器將直接呼叫 Gemini 即時拓展任意新領域節點。</span>
+      </div>
 
-        <div style="display: flex; gap: 8px;">
-          <button class="btn-action-ghost" id="btn-export-json" style="flex: 1; font-size: 12px;">
-            匯出本機進度 JSON
-          </button>
-          <button class="btn-action-ghost" id="btn-import-json" style="flex: 1; font-size: 12px;">
-            匯入進度備份
-          </button>
-          <input type="file" id="file-import-input" accept=".json" style="display: none;">
-        </div>
+      <div class="form-group">
+        <label class="form-label" for="input-openrouter-key">OpenRouter API Key (雙軌備援，自動切換)</label>
+        <input type="password" id="input-openrouter-key" class="form-input" placeholder="貼上你的 OpenRouter Key">
+        <span class="form-help">純本機存儲。當 Gemini 配額暫時受限時，作為無縫自動備援線路。</span>
+      </div>
 
-        <div style="margin-top: 8px;">
-          <button class="btn-action-ghost" id="btn-reset-progress" style="width: 100%; color: #f87171; border-color: rgba(239, 68, 68, 0.35); font-size: 12px; padding: 8px;">
-            ⚠️ 重置所有探險進度 (從第一天全新開始)
-          </button>
-        </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-action-primary" id="btn-sync-now" style="flex: 1; padding: 10px;">
+          立即雲端同步 (Gist)
+        </button>
+        <button class="btn-action-ghost" id="btn-save-settings" style="padding: 10px 16px;">
+          儲存設定
+        </button>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--glass-border);">
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-action-ghost" id="btn-export-json" style="flex: 1; font-size: 12px;">
+          匯出本機進度 JSON
+        </button>
+        <button class="btn-action-ghost" id="btn-import-json" style="flex: 1; font-size: 12px;">
+          匯入進度備份
+        </button>
+        <input type="file" id="file-import-input" accept=".json" style="display: none;">
+      </div>
+
+      <div style="margin-top: 8px;">
+        <button class="btn-action-ghost" id="btn-reset-progress" style="width: 100%; color: #f87171; border-color: rgba(239, 68, 68, 0.35); font-size: 12px; padding: 8px;">
+          ⚠️ 重置所有探險進度 (從第一天全新開始)
+        </button>
       </div>
     </div>
-
-    <!-- Topic Exploration Radar Modal -->
-    <div class="modal-overlay" id="radar-modal">
-      <div class="modal-card radar-card">
-        <div class="modal-header">
-          <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="12"/><line x1="12" y1="12" x2="19" y2="15"/></svg>
-            <span>思維疆界探索雷達 // UNCHARTED TOPIC RADAR</span>
-          </div>
-          <button class="btn-close-modal" id="btn-close-radar">&times;</button>
-        </div>
-        
-        <p class="radar-intro">鳥瞰不設限的跨領域心智模型星雲（物理學、演化論、複雜系統、統計學等），或發射 AI 探測器向未知學科自我擴張。</p>
-        
-        <!-- Radar Domains Grid -->
-        <div class="radar-domains-grid" id="radar-domains-container">
-          <!-- Dynamically populated domains -->
-        </div>
-
-        <!-- Custom AI Probe Input -->
-        <div class="custom-probe-box">
-          <div class="probe-title">發射思維探測器 // AUTONOMOUS KNOWLEDGE EXPANSION</div>
-          <p class="probe-hint">輸入任何你好奇的現象、困境或學科，即刻合成 3 分鐘費曼模型並拓寬星圖：</p>
-          <div class="probe-input-row">
-            <input type="text" id="probe-input" placeholder="例如：哲學的奧卡姆剃刀、資訊論的夏農熵、生態學的狼群效應..." maxlength="80">
-            <button class="btn-action-primary" id="btn-launch-probe" style="padding: 8px 16px; font-size: 13px; white-space: nowrap;">發射探測</button>
-          </div>
-          <div class="radar-quick-tags" id="radar-quick-tags" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-            <span style="font-size: 11px; color: #94a3b8;">✦ 跨域拓荒靈感：</span>
-            <button class="probe-tag-btn" data-topic="哲學與認識論：奧卡姆剃刀" data-domain="哲學思考">哲學・奧卡姆剃刀</button>
-            <button class="probe-tag-btn" data-topic="資訊論：夏農資訊熵" data-domain="資訊科學">資訊論・夏農熵</button>
-            <button class="probe-tag-btn" data-topic="軍事戰略：OODA決策循環" data-domain="決策戰略">戰略・OODA循環</button>
-            <button class="probe-tag-btn" data-topic="控制論：正負反饋調節迴路" data-domain="控制工程">控制論・反饋調節</button>
-            <button class="probe-tag-btn" data-topic="生態系統學：頂級捕食者引發的營養級瀑布" data-domain="生態系統學">生態學・營養級聯</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Floating Toast Notification -->
-    <div class="toast-msg" id="toast-msg">提示訊息</div>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="bottom-nav">
-      <button class="nav-item active" data-view="view-expedition">
-        <svg viewBox="0 0 24 24">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-        </svg>
-        <span>今日拓荒</span>
-      </button>
-
-      <button class="nav-item" data-view="view-map">
-        <svg viewBox="0 0 24 24">
-          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-          <line x1="8" y1="2" x2="8" y2="18"></line>
-          <line x1="16" y1="6" x2="16" y2="22"></line>
-        </svg>
-        <span>迷霧星圖</span>
-      </button>
-
-      <button class="nav-item" data-view="view-profile">
-        <svg viewBox="0 0 24 24">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-        <span>探險日誌</span>
-      </button>
-    </nav>
-
   </div>
+
+  <!-- Topic Exploration Radar Modal -->
+  <div class="modal-overlay" id="radar-modal">
+    <div class="modal-card radar-card">
+      <div class="modal-header">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="12"/><line x1="12" y1="12" x2="19" y2="15"/></svg>
+          <span>思維疆界探索雷達 // UNCHARTED TOPIC RADAR</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-radar">&times;</button>
+      </div>
+      
+      <p class="radar-intro">鳥瞰不設限的跨領域心智模型星雲（物理學、演化論、複雜系統、統計學等），或發射 AI 探測器向未知學科自我擴張。</p>
+      
+      <!-- Radar Domains Grid -->
+      <div class="radar-domains-grid" id="radar-domains-container">
+        <!-- Dynamically populated domains -->
+      </div>
+
+      <!-- Custom AI Probe Input -->
+      <div class="custom-probe-box">
+        <div class="probe-title">發射思維探測器 // AUTONOMOUS KNOWLEDGE EXPANSION</div>
+        <p class="probe-hint">輸入任何你好奇的現象、困境或學科，即刻合成 3 分鐘費曼模型並拓寬星圖：</p>
+        <div class="probe-input-row">
+          <input type="text" id="probe-input" placeholder="例如：哲學的奧卡姆剃刀、資訊論的夏農熵、生態學的狼群效應..." maxlength="80">
+          <button class="btn-action-primary" id="btn-launch-probe" style="padding: 8px 16px; font-size: 13px; white-space: nowrap;">發射探測</button>
+        </div>
+        <div class="radar-quick-tags" id="radar-quick-tags" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+          <span style="font-size: 11px; color: #94a3b8;">✦ 跨域拓荒靈感：</span>
+          <button class="probe-tag-btn" data-topic="哲學與認識論：奧卡姆剃刀" data-domain="哲學思考">哲學・奧卡姆剃刀</button>
+          <button class="probe-tag-btn" data-topic="資訊論：夏農資訊熵" data-domain="資訊科學">資訊論・夏農熵</button>
+          <button class="probe-tag-btn" data-topic="軍事戰略：OODA決策循環" data-domain="決策戰略">戰略・OODA循環</button>
+          <button class="probe-tag-btn" data-topic="控制論：正負反饋調節迴路" data-domain="控制工程">控制論・反饋調節</button>
+          <button class="probe-tag-btn" data-topic="生態系統學：頂級捕食者引發的營養級瀑布" data-domain="生態系統學">生態學・營養級聯</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notification -->
+  <div class="toast-msg" id="toast-msg">提示訊息</div>
 
   <!-- Scripts -->
   <script src="src/scripts/starfield.js"></script>

@@ -99,8 +99,8 @@ JSON Schema 如下：
 async function callGoogleGemini(userPrompt) {
   if (!GEMINI_API_KEY) throw new Error('Missing GEMINI_API_KEY');
   
-  // Model priority: configured model -> gemini-flash-latest -> gemini-flash-lite-latest -> gemini-3.6-flash
-  const candidateModels = Array.from(new Set([GEMINI_MODEL, 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.6-flash']));
+  // Model priority: configured model -> gemini-3.5-flash -> gemini-flash-latest -> gemini-flash-lite-latest -> gemini-3.6-flash
+  const candidateModels = Array.from(new Set([GEMINI_MODEL, 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.6-flash']));
   
   let lastError = null;
   for (const m of candidateModels) {
@@ -135,24 +135,39 @@ async function callGoogleGemini(userPrompt) {
 
 async function callOpenRouter(userPrompt) {
   if (!OPENROUTER_API_KEY) throw new Error('Missing OPENROUTER_API_KEY');
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt }
-      ],
-      response_format: { type: 'json_object' }
-    })
-  });
-  if (!res.ok) throw new Error(`OpenRouter Error: ${res.statusText}`);
-  const data = await res.json();
-  return JSON.parse(data.choices[0].message.content);
+  const freeModels = [
+    'minimax/minimax-m2.7:free',
+    'liquid/lfm-2.5-2.6b:free',
+    'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+    'google/gemma-4-31b-it:free'
+  ];
+
+  for (const m of freeModels) {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: m,
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: userPrompt }
+          ],
+          response_format: { type: 'json_object' }
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return JSON.parse(data.choices[0].message.content);
+      }
+    } catch (e) {
+      console.warn(`[OpenRouter] Model ${m} failed, trying next...`);
+    }
+  }
+  throw new Error('All OpenRouter free models failed');
 }
 
 // Multi-provider Runner

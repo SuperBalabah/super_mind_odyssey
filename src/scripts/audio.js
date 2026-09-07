@@ -122,6 +122,32 @@ class SoundEngine {
 
     osc.start();
     osc.stop(this.ctx.currentTime + 0.3);
+  // Relic Acquisition / Triumph Chime (D-Maj triad chime)
+  playRewardRelic() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const notes = [587.33, 739.99, 880.00, 1174.66]; // D5, F#5, A5, D6
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.06);
+
+      const startTime = this.ctx.currentTime + idx * 0.06;
+      const duration = 0.5;
+
+      gain.gain.setValueAtTime(0.2, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    });
   }
 }
 

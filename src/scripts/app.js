@@ -243,19 +243,27 @@ class MindOdysseyApp {
     this.btnSyncNow.addEventListener('click', async () => {
       this.btnSyncNow.disabled = true;
       this.btnSyncNow.innerHTML = '↻ 同步中...';
-      // Pull first (get remote changes), then push local state up
-      await window.syncManager.pullFromGist();
-      const res = await window.syncManager.tryCloudSync(() => this.showSyncBadge());
-      this.btnSyncNow.disabled = false;
-      this.btnSyncNow.innerHTML = '↕ 雙向同步 (Pull + Push)';
-      if (res.success) {
-        this.updateSyncStatus();
-        this.showToast('☁️ 雙向同步完成！');
-        this.updateHUD();
-        this.renderMap();
-        this.renderProfile();
-      } else {
-        this.showToast('❌ 同步失敗: ' + (res.reason || '請檢查 Token 與 Gist ID'));
+      try {
+        // Pull first (get remote changes), then push local state up
+        const pullRes = await window.syncManager.pullFromGist();
+        const pushRes = await window.syncManager.tryCloudSync(() => this.showSyncBadge());
+        
+        if (pushRes.success || (pullRes && pullRes.success)) {
+          this.updateSyncStatus();
+          this.showToast('☁️ 雙向同步完成！(雲端與本機已對齊)');
+          this.updateHUD();
+          this.renderMap();
+          this.renderProfile();
+        } else {
+          const reason = pushRes.reason || (pullRes ? pullRes.reason : '連線失敗');
+          this.showToast('❌ 同步失敗: ' + reason);
+        }
+      } catch (err) {
+        console.error('Manual sync failed:', err);
+        this.showToast('❌ 同步錯誤: ' + (err.message || '請確認網路與金鑰'));
+      } finally {
+        this.btnSyncNow.disabled = false;
+        this.btnSyncNow.innerHTML = '↕ 雙向同步 (Pull + Push)';
       }
     });
 
@@ -1175,7 +1183,7 @@ class MindOdysseyApp {
   ]
 }`;
 
-    const models = ['gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.6-flash'];
+    const models = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.6-flash'];
     for (const m of models) {
       try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
@@ -1502,8 +1510,8 @@ class MindOdysseyApp {
         const answer = await this.callGeminiInquiry(geminiKey, question);
         if (answer) {
           this.inquiryResponseText.textContent = answer;
-          if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'GEMINI 3.8 FLASH';
-          window.soundEngine.playRewardRelic();
+          if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'GOOGLE GEMINI FLASH';
+          try { window.soundEngine?.playRewardRelic?.(); } catch (e) {}
           return;
         }
       } catch (err) {
@@ -1517,8 +1525,8 @@ class MindOdysseyApp {
         const answer = await this.callOpenRouterInquiry(openrouterKey, question);
         if (answer) {
           this.inquiryResponseText.textContent = answer;
-          if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'OPENROUTER LLAMA 3.3';
-          window.soundEngine.playRewardRelic();
+          if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'OPENROUTER AI DUAL-TRACK';
+          try { window.soundEngine?.playRewardRelic?.(); } catch (e) {}
           return;
         }
       } catch (err) {
@@ -1530,7 +1538,7 @@ class MindOdysseyApp {
     const curatedAnswer = this.getCuratedInquiryAnswer(this.activeNode.id, question);
     this.inquiryResponseText.textContent = curatedAnswer;
     if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'FEYNMAN KNOWLEDGE VAULT';
-    window.soundEngine.playRewardRelic();
+    try { window.soundEngine?.playRewardRelic?.(); } catch (e) {}
   }
 
   async callClientOpenRouter(apiKey, topic, domainHint) {
@@ -1538,23 +1546,38 @@ class MindOdysseyApp {
 嚴格遵守四大原則：1. 情境二選一開場 2. 零術語負債（jargons 給 20 字白話翻譯並附英文對照） 3. 現實防身術 4. 課後三扇門。
 必須嚴格輸出純 JSON 物件，包含 id, domain, domainId, title, modelEn, subtitle, icon, readingTime, relicReward, dilemma, core (essence, analogy, jargons), takeaway, doors。`;
 
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin || 'http://localhost:3456',
-        'X-Title': 'Super Mind Odyssey'
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-3.3-70b-instruct:free',
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' }
-      })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return JSON.parse(data.choices[0].message.content);
+    const freeModels = [
+      'minimax/minimax-m2.7:free',
+      'liquid/lfm-2.5-2.6b:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+      'google/gemma-4-31b-it:free'
+    ];
+
+    for (const m of freeModels) {
+      try {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.origin || 'http://localhost:3456',
+            'X-Title': 'Super Mind Odyssey'
+          },
+          body: JSON.stringify({
+            model: m,
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' }
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          return JSON.parse(data.choices[0].message.content);
+        }
+      } catch (e) {
+        console.warn(`OpenRouter model ${m} failed, trying next:`, e);
+      }
+    }
+    throw new Error('All OpenRouter models failed');
   }
 
   async callOpenRouterInquiry(apiKey, question) {
@@ -1563,22 +1586,39 @@ class MindOdysseyApp {
 用戶的深度追問是：【${question}】
 請在 120 字以內，用極簡犀利的生活比喻直擊本質，最後一句給出最硬核的現實破局操作指南。禁止任何客套話。`;
 
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin || 'http://localhost:3456',
-        'X-Title': 'Super Mind Odyssey'
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-3.3-70b-instruct:free',
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return data.choices[0].message.content.trim();
+    const freeModels = [
+      'minimax/minimax-m2.7:free',
+      'liquid/lfm-2.5-2.6b:free',
+      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+      'google/gemma-4-31b-it:free'
+    ];
+
+    for (const m of freeModels) {
+      try {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.origin || 'http://localhost:3456',
+            'X-Title': 'Super Mind Odyssey'
+          },
+          body: JSON.stringify({
+            model: m,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.choices && data.choices[0] && data.choices[0].message) {
+            return data.choices[0].message.content.trim();
+          }
+        }
+      } catch (e) {
+        console.warn(`OpenRouter model ${m} failed, trying next:`, e);
+      }
+    }
+    throw new Error('All OpenRouter models failed');
   }
 
   async callGeminiInquiry(apiKey, question) {
@@ -1591,19 +1631,36 @@ class MindOdysseyApp {
 2. 用一個犀利、直觀的生活化白話比喻直擊底層本質。
 3. 零術語負債，最後一句給出最硬核的現實破局操作指南。`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.6, maxOutputTokens: 256 }
-      })
-    });
+    const models = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.6-flash'];
+    let lastErr = null;
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return data.candidates[0].content.parts[0].text.trim();
+    for (const m of models) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.6, maxOutputTokens: 256 }
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.candidates && data.candidates[0] && data.candidates[0].content) {
+            return data.candidates[0].content.parts[0].text.trim();
+          }
+        } else {
+          lastErr = new Error(`HTTP ${res.status}`);
+        }
+      } catch (err) {
+        console.warn(`Gemini inquiry model ${m} failed, trying next:`, err);
+        lastErr = err;
+      }
+    }
+
+    throw lastErr || new Error('All Gemini inquiry models failed');
   }
 
   getCuratedInquiryAnswer(nodeId, question) {
@@ -1694,6 +1751,20 @@ class MindOdysseyApp {
     this.gistIdInput.value = cfg.gistId || '';
     if (this.geminiKeyInput) this.geminiKeyInput.value = cfg.geminiApiKey || '';
     if (this.openrouterKeyInput) this.openrouterKeyInput.value = cfg.openrouterApiKey || '';
+    
+    // Restore last sync time display
+    const el = document.getElementById('sync-status-line');
+    if (el) {
+      const lastSync = localStorage.getItem('mind_odyssey_last_sync');
+      if (lastSync) {
+        el.textContent = `上次同步：${lastSync} ✔`;
+        el.style.color = '#10b981';
+      } else {
+        el.textContent = '上次同步：從未';
+        el.style.color = '#64748b';
+      }
+    }
+
     this.settingsModal.classList.add('active');
   }
 
@@ -1708,12 +1779,15 @@ class MindOdysseyApp {
   // Update the "last synced" line inside settings modal
   updateSyncStatus() {
     const el = document.getElementById('sync-status-line');
-    if (!el) return;
     const now = new Date();
-    const hhmm = now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
-    el.textContent = `上次同步：${hhmm} ✔`;
+    const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+    try {
+      localStorage.setItem('mind_odyssey_last_sync', timeStr);
+    } catch (e) {}
+
+    if (!el) return;
+    el.textContent = `上次同步：${timeStr} ✔`;
     el.style.color = '#10b981';
-    setTimeout(() => { el.style.color = '#64748b'; }, 3000);
   }
 
   // Micro sync badge: slides in from top-right, auto fades after 2.5s

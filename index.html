@@ -257,7 +257,7 @@
               <span class="inquiry-badge">FEYNMAN Q&A</span>
             </div>
 
-            <p class="inquiry-intro">看完仍有困惑或好奇？點選下方速問晶片或輸入你的問題，立即獲得 120 字費曼本質拆解：</p>
+            <p class="inquiry-intro">看完仍有困惑或好奇？點選下方速問晶片或輸入你的問題，立即獲得費曼深度本質拆解（支援實戰案例、局勢剖析與破局心法）：</p>
 
             <!-- Quick Inquiry Chips -->
             <div class="inquiry-chips-wrap" id="inquiry-chips-container">
@@ -281,6 +281,17 @@
               </div>
               <div class="inquiry-response-text" id="inquiry-response-text">
                 解析中...
+              </div>
+              <!-- Action bar for saving/copying inquiry note -->
+              <div class="inquiry-actions-row" id="inquiry-actions-row" style="display: none;">
+                <button class="inquiry-action-btn" id="btn-save-inquiry">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  <span id="save-inquiry-btn-text">收藏此解碼筆記</span>
+                </button>
+                <button class="inquiry-action-btn" id="btn-copy-inquiry">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span>複製解碼內容</span>
+                </button>
               </div>
             </div>
           </div>
@@ -396,6 +407,20 @@
           </div>
           <div class="relics-grid" id="relics-list-grid">
             <!-- Dynamically rendered 3D tilt relic cases -->
+          </div>
+        </div>
+
+        <!-- Archived Inquiries Vault (戰術追問解碼庫) -->
+        <div class="inquiry-archive-section" style="margin-top: 24px;">
+          <div class="relics-vault-header">
+            <div class="relics-vault-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>戰術追問解碼庫 // ARCHIVED INQUIRIES</span>
+            </div>
+            <span class="tech-code" id="inquiries-counter">COLLECTED: 0</span>
+          </div>
+          <div class="inquiry-archive-list" id="inquiry-archive-list">
+            <!-- Dynamically rendered saved inquiries -->
           </div>
         </div>
 
@@ -563,6 +588,34 @@
     </div>
   </div>
 
+  <!-- Frontier Warp & Synthesis Full-Screen Overlay -->
+  <div class="modal-overlay" id="warp-synthesis-modal" style="z-index: 10000;">
+    <div class="modal-card warp-synthesis-card" style="max-width: 440px; text-align: center; padding: 28px 24px;">
+      <div class="warp-radar-scanner">
+        <div class="warp-pulse-ring"></div>
+        <div class="warp-pulse-ring delay"></div>
+        <div class="warp-center-icon">🛰️</div>
+      </div>
+      <div class="warp-modal-title" id="warp-modal-title">曲速躍遷中 // WARP SYNTHESIS</div>
+      <div class="warp-modal-subtitle" id="warp-modal-subtitle">正在為未知領域自主拓荒全新心智模型星雲...</div>
+      
+      <div class="warp-steps-list">
+        <div class="warp-step-item active" id="warp-step-1">
+          <span class="warp-step-dot"></span>
+          <span>推演遭遇戰術二選一抉擇 (Dilemma Matrix)</span>
+        </div>
+        <div class="warp-step-item" id="warp-step-2">
+          <span class="warp-step-dot"></span>
+          <span>構築費曼生活比喻與零術語字典 (Glossary Decoding)</span>
+        </div>
+        <div class="warp-step-item" id="warp-step-3">
+          <span class="warp-step-dot"></span>
+          <span>研發實戰防身心法與專屬思維神器 (Tactical Relic)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Floating Toast Notification -->
   <div class="toast-msg" id="toast-msg">提示訊息</div>
 
@@ -573,11 +626,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="src/scripts/starfield.js?v=2.3.0"></script>
-  <script src="src/scripts/audio.js?v=2.3.0"></script>
-  <script src="src/scripts/database.js?v=2.3.0"></script>
-  <script src="src/scripts/sync.js?v=2.3.0"></script>
-  <script src="src/scripts/app.js?v=2.3.0"></script>
+  <script src="src/scripts/starfield.js?v=2.4.0"></script>
+  <script src="src/scripts/audio.js?v=2.4.0"></script>
+  <script src="src/scripts/database.js?v=2.4.0"></script>
+  <script src="src/scripts/sync.js?v=2.4.0"></script>
+  <script src="src/scripts/app.js?v=2.4.0"></script>
 
   <!-- Service Worker Registration for PWA Offline Cache -->
   <script>

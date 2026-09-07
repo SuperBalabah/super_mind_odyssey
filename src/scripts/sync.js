@@ -31,6 +31,7 @@ class SyncManager {
       activeNodeId: 'boxed_pigs',
       completedNodes: [],
       customNodes: [], // Dynamically self-expanded nodes from AI probes
+      inquiryArchive: [], // Saved deep inquiry Feynman Q&A notes
       relics: [],
       streak: 1,
       lastActiveDate: new Date().toISOString().split('T')[0],
@@ -52,7 +53,12 @@ class SyncManager {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        return { ...this.getDefaultState(), ...parsed, customNodes: parsed.customNodes || [] };
+        return { 
+          ...this.getDefaultState(), 
+          ...parsed, 
+          customNodes: parsed.customNodes || [],
+          inquiryArchive: parsed.inquiryArchive || []
+        };
       }
     } catch (e) {
       console.warn('Failed to load local state, using default', e);
@@ -152,6 +158,22 @@ class SyncManager {
 
     this.saveLocalState();
     this.tryCloudSync(); // Non-blocking cloud sync
+  }
+
+  // Archive a customized inquiry Q&A note
+  archiveInquiry(inquiry) {
+    if (!this.state.inquiryArchive) this.state.inquiryArchive = [];
+    this.state.inquiryArchive.unshift(inquiry);
+    this.saveLocalState();
+    this.tryCloudSync();
+  }
+
+  // Delete an archived inquiry note by ID
+  deleteArchivedInquiry(id) {
+    if (!this.state.inquiryArchive) return;
+    this.state.inquiryArchive = this.state.inquiryArchive.filter(item => item.id !== id);
+    this.saveLocalState();
+    this.tryCloudSync();
   }
 
   // GitHub Gist Cloud Sync (push local → Gist)

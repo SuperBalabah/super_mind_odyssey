@@ -123,6 +123,19 @@ class MindOdysseyApp {
     this.inquiryResponseText = document.getElementById('inquiry-response-text');
     this.inquiryResponseTitle = document.getElementById('inquiry-response-title');
     this.inquirySourceTag = document.getElementById('inquiry-source-tag');
+    this.inquiryActionsRow = document.getElementById('inquiry-actions-row');
+    this.btnSaveInquiry = document.getElementById('btn-save-inquiry');
+    this.saveInquiryBtnText = document.getElementById('save-inquiry-btn-text');
+    this.btnCopyInquiry = document.getElementById('btn-copy-inquiry');
+
+    // Warp Synthesis Modal
+    this.warpSynthesisModal = document.getElementById('warp-synthesis-modal');
+    this.warpModalTitle = document.getElementById('warp-modal-title');
+    this.warpModalSubtitle = document.getElementById('warp-modal-subtitle');
+
+    // Archived Inquiries Elements
+    this.inquiryArchiveList = document.getElementById('inquiry-archive-list');
+    this.inquiriesCounter = document.getElementById('inquiries-counter');
 
     // Toast
     this.toast = document.getElementById('toast-msg');
@@ -164,6 +177,18 @@ class MindOdysseyApp {
           const q = this.inquiryCustomInput.value.trim();
           if (q) this.handleInquiry(q);
         }
+      });
+    }
+
+    if (this.btnSaveInquiry) {
+      this.btnSaveInquiry.addEventListener('click', () => {
+        this.saveCurrentInquiry();
+      });
+    }
+
+    if (this.btnCopyInquiry) {
+      this.btnCopyInquiry.addEventListener('click', () => {
+        this.copyCurrentInquiry();
       });
     }
 
@@ -477,6 +502,18 @@ class MindOdysseyApp {
     this.activeNode = window.MIND_DATABASE.find(n => n.id === targetId) || window.MIND_DATABASE[0];
     this.selectedOption = null;
 
+    // Safety guard: If node is not synthesized yet (e.g. AI-discovered door), initiate hyperlane exploration!
+    if (!this.activeNode.dilemma) {
+      this.startFrontierExploration(this.activeNode.id, this.activeNode.title, this.activeNode.domain);
+      return;
+    }
+
+    // Reset Inquiry Terminal state
+    if (this.inquiryResponseBox) this.inquiryResponseBox.style.display = 'none';
+    if (this.inquiryActionsRow) this.inquiryActionsRow.style.display = 'none';
+    if (this.inquiryCustomInput) this.inquiryCustomInput.value = '';
+    this.currentInquiry = null;
+
     // Reset Steps
     this.setStep(1);
 
@@ -487,11 +524,11 @@ class MindOdysseyApp {
     this.heroSubtitle.textContent = this.activeNode.subtitle;
     this.readTimer.innerHTML = `
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      EST. READ // ${this.activeNode.readingTime}
+      EST. READ // ${this.activeNode.readingTime || '3 分鐘'}
     `;
 
     // Populate Stage 1: Dilemma
-    this.dilemmaPrompt.innerText = this.activeNode.dilemma.prompt;
+    this.dilemmaPrompt.innerText = this.activeNode.dilemma ? this.activeNode.dilemma.prompt : '情境載入中...';
     this.dilemmaResult.style.display = 'none';
     this.btnToCore.disabled = true;
 
@@ -829,25 +866,13 @@ class MindOdysseyApp {
   }
 
   async selectDoor(targetId, title) {
-    // Check if targetId already exists in database
+    // Check if targetId already exists in database with full dilemma
     let targetNode = window.MIND_DATABASE.find(n => n.id === targetId);
 
-    if (!targetNode) {
-      // Node is an uncharted frontier door: graph self-expands on the fly!
-      this.showToast(`🛰️ 探險傳送中：正在為全新航線【${title.substring(0, 14)}...】自主拓荒新星雲...`);
-      try {
-        const newNode = await this.synthesizeNode(title, null, targetId);
-        window.syncManager.completeNode(this.activeNode.id, this.selectedOption || 'A', newNode.id);
-        this.renderMap();
-        this.renderProfile();
-        this.updateHUD();
-        this.loadActiveNode(newNode.id);
-        this.switchView('view-expedition');
-        this.showToast(`✨ 自主拓荒成功！已點亮全新【${newNode.domain}】節點！`);
-        return;
-      } catch (err) {
-        console.error('Self expansion failed:', err);
-      }
+    if (!targetNode || !targetNode.dilemma) {
+      // Node is an uncharted frontier door: initiate autonomous hyperlane synthesis!
+      await this.startFrontierExploration(targetId, title, targetNode ? targetNode.domain : null);
+      return;
     }
 
     // Unlock target node and switch to it
@@ -858,6 +883,59 @@ class MindOdysseyApp {
       this.loadActiveNode(targetId);
       this.switchView('view-expedition');
     }, 600);
+  }
+
+  async startFrontierExploration(targetId, title, domainHint = null) {
+    if (this.warpSynthesisModal) {
+      if (this.warpModalTitle) this.warpModalTitle.textContent = `曲速躍遷中 // ${title.split('：')[0]}`;
+      if (this.warpModalSubtitle) this.warpModalSubtitle.textContent = `正在為【${title}】自主拓荒完整心智模型星系...`;
+      this.warpSynthesisModal.classList.add('active');
+    }
+    
+    // Simulate telemetry step progress
+    const step1 = document.getElementById('warp-step-1');
+    const step2 = document.getElementById('warp-step-2');
+    const step3 = document.getElementById('warp-step-3');
+    if (step1) step1.className = 'warp-step-item active';
+    if (step2) step2.className = 'warp-step-item';
+    if (step3) step3.className = 'warp-step-item';
+
+    setTimeout(() => { if (step2) step2.className = 'warp-step-item active'; }, 700);
+    setTimeout(() => { if (step3) step3.className = 'warp-step-item active'; }, 1500);
+
+    try {
+      const newNode = await this.synthesizeNode(title, domainHint, targetId);
+      
+      // Update in MIND_DATABASE
+      const idx = window.MIND_DATABASE.findIndex(n => n.id === targetId);
+      if (idx !== -1) {
+        window.MIND_DATABASE[idx] = newNode;
+      } else {
+        window.MIND_DATABASE.push(newNode);
+      }
+
+      window.syncManager.addCustomNode(newNode);
+      window.syncManager.completeNode(this.activeNode ? this.activeNode.id : 'boxed_pigs', this.selectedOption || 'A', newNode.id);
+
+      this.renderMap();
+      this.renderProfile();
+      this.updateHUD();
+
+      if (this.warpSynthesisModal) this.warpSynthesisModal.classList.remove('active');
+
+      this.loadActiveNode(newNode.id);
+      this.switchView('view-expedition');
+      this.showToast(`✨ 自主拓荒完成！全新星系【${newNode.title.split('：')[0]}】已解鎖！`);
+      try { window.soundEngine?.playUnlockNode?.(); } catch (e) {}
+    } catch (err) {
+      console.error('Frontier synthesis failed:', err);
+      if (this.warpSynthesisModal) this.warpSynthesisModal.classList.remove('active');
+      this.showToast('⚠️ 星際通訊干擾，啟用預設備援模型');
+      const fallback = this.generateProceduralNode(title, domainHint, targetId);
+      window.syncManager.addCustomNode(fallback);
+      this.loadActiveNode(fallback.id);
+      this.switchView('view-expedition');
+    }
   }
 
   handlePassDoors() {
@@ -1002,8 +1080,11 @@ class MindOdysseyApp {
             if (isLit) {
               // 已通關節點：直接開啟心智圖鑑好讀模式！
               this.openCodexModal(node.id);
+            } else if (!node.dilemma) {
+              // 尚未自主合成的 AI 新星系：自動啟動曲速拓荒！
+              this.startFrontierExploration(node.id, node.title, node.domain);
             } else {
-              // 未完成節點：進入拓荒挑戰
+              // 已就緒未完成節點：進入拓荒挑戰
               this.loadActiveNode(node.id);
               this.switchView('view-expedition');
             }
@@ -1198,6 +1279,9 @@ class MindOdysseyApp {
     ctx.shadowBlur = 8;
     ctx.stroke();
     ctx.shadowBlur = 0;
+
+    // Render archived inquiry notes
+    this.renderInquiryArchive();
   }
 
   // -------------------------------------------------------------
@@ -1462,7 +1546,7 @@ class MindOdysseyApp {
   ]
 }`;
 
-    const models = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.6-flash'];
+    const models = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash'];
     for (const m of models) {
       try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
@@ -1470,7 +1554,7 @@ class MindOdysseyApp {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
+            generationConfig: { responseMimeType: "application/json", maxOutputTokens: 4096 }
           })
         });
         if (res.ok) {
@@ -1772,6 +1856,117 @@ class MindOdysseyApp {
     ];
   }
 
+  parseMarkdown(md) {
+    if (!md) return '';
+    let html = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/^#### (.*$)/gim, '<h4 class="md-h4">$1</h4>')
+      .replace(/^### (.*$)/gim, '<h3 class="md-h3">$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2 class="md-h2">$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1 class="md-h1">$1</h1>')
+      .replace(/^---$/gim, '<hr class="md-hr">')
+      .replace(/^\> (.*$)/gim, '<blockquote class="md-blockquote">$1</blockquote>')
+      .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
+
+    // Unordered lists
+    html = html.replace(/^\s*[\-\*]\s+(.*)$/gim, '<li class="md-li">$1</li>');
+    html = html.replace(/(<li class="md-li">[\s\S]*?<\/li>)/g, '<ul class="md-ul">$1</ul>');
+
+    // Ordered lists
+    html = html.replace(/^\s*(\d+)\.\s+(.*)$/gim, '<li class="md-oli"><span class="md-ol-num">$1.</span> $2</li>');
+    html = html.replace(/(<li class="md-oli">[\s\S]*?<\/li>)/g, '<ol class="md-ol">$1</ol>');
+
+    const paragraphs = html.split(/\n{2,}/);
+    html = paragraphs.map(p => {
+      p = p.trim();
+      if (!p) return '';
+      if (p.startsWith('<h') || p.startsWith('<ul') || p.startsWith('<ol') || p.startsWith('<blockquote') || p.startsWith('<hr')) {
+        return p;
+      }
+      return `<p class="md-p">${p.replace(/\n/g, '<br>')}</p>`;
+    }).join('\n');
+
+    return html;
+  }
+
+  saveCurrentInquiry() {
+    if (!this.currentInquiry || !this.currentInquiry.answer) return;
+    window.syncManager.archiveInquiry(this.currentInquiry);
+    if (this.btnSaveInquiry) this.btnSaveInquiry.classList.add('saved');
+    if (this.saveInquiryBtnText) this.saveInquiryBtnText.textContent = '✔ 已收藏';
+    this.showToast('💾 已收藏至戰術追問解碼庫！隨時可於探險日誌中回顧。');
+    try { window.soundEngine?.playRewardRelic?.(); } catch (e) {}
+  }
+
+  copyCurrentInquiry() {
+    if (!this.currentInquiry || !this.currentInquiry.answer) return;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(this.currentInquiry.answer).then(() => {
+        this.showToast('📋 解碼內容已複製到剪貼簿！');
+      }).catch(() => {
+        this.showToast('⚠️ 複製失敗，請手動選取複製');
+      });
+    }
+  }
+
+  renderInquiryArchive() {
+    if (!this.inquiryArchiveList) return;
+    const archive = window.syncManager.state.inquiryArchive || [];
+    if (this.inquiriesCounter) {
+      this.inquiriesCounter.textContent = `COLLECTED: ${archive.length}`;
+    }
+
+    if (archive.length === 0) {
+      this.inquiryArchiveList.innerHTML = `
+        <div class="inquiry-archive-empty">
+          尚無已收藏的追問解碼筆記。在今日拓荒的「戰術深度追問終端」發射問題後，點擊「收藏此解碼筆記」即可永久留存於此！
+        </div>
+      `;
+      return;
+    }
+
+    this.inquiryArchiveList.innerHTML = '';
+    archive.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'inquiry-archive-card';
+      const formattedDate = item.date ? new Date(item.date).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+      
+      card.innerHTML = `
+        <div class="inquiry-archive-meta">
+          <span class="inquiry-archive-tag">${item.nodeTitle ? item.nodeTitle.split('：')[0] : '心智解碼'}</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="inquiry-archive-date">${formattedDate}</span>
+            <button class="inquiry-archive-del-btn" title="刪除此筆記">✕ 刪除</button>
+          </div>
+        </div>
+        <div class="inquiry-archive-q">
+          <span class="q-icon">❓</span>
+          <span>${item.question}</span>
+        </div>
+        <div class="inquiry-archive-ans inquiry-response-text">
+          ${this.parseMarkdown(item.answer)}
+        </div>
+      `;
+
+      const delBtn = card.querySelector('.inquiry-archive-del-btn');
+      if (delBtn) {
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.syncManager.deleteArchivedInquiry(item.id);
+          this.renderInquiryArchive();
+          this.showToast('🗑️ 已自追問庫中移除筆記');
+        });
+      }
+
+      this.inquiryArchiveList.appendChild(card);
+    });
+  }
+
   async handleInquiry(question) {
     window.soundEngine.playDilemmaSelect();
 
@@ -1779,44 +1974,58 @@ class MindOdysseyApp {
     this.inquiryResponseBox.style.display = 'block';
     this.inquiryResponseText.textContent = '🛰️ 費曼思維解碼通訊中（DECRYPTING TELEMETRY）...';
     if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'SYNTHESIZING...';
+    if (this.inquiryActionsRow) this.inquiryActionsRow.style.display = 'none';
 
     const geminiKey = window.syncManager.gistConfig.geminiApiKey || '';
     const openrouterKey = window.syncManager.gistConfig.openrouterApiKey || '';
+    let answer = null;
+    let source = '';
 
     // 1. Try Gemini Live Feynman Inquiry
     if (geminiKey) {
       try {
-        const answer = await this.callGeminiInquiry(geminiKey, question);
-        if (answer) {
-          this.inquiryResponseText.textContent = answer;
-          if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'GOOGLE GEMINI FLASH';
-          try { window.soundEngine?.playRewardRelic?.(); } catch (e) {}
-          return;
-        }
+        answer = await this.callGeminiInquiry(geminiKey, question);
+        if (answer) source = 'GOOGLE GEMINI FLASH';
       } catch (err) {
         console.warn('Gemini inquiry call failed, trying OpenRouter failover:', err);
       }
     }
 
     // 2. Try OpenRouter Live Inquiry Failover
-    if (openrouterKey) {
+    if (!answer && openrouterKey) {
       try {
-        const answer = await this.callOpenRouterInquiry(openrouterKey, question);
-        if (answer) {
-          this.inquiryResponseText.textContent = answer;
-          if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'OPENROUTER AI DUAL-TRACK';
-          try { window.soundEngine?.playRewardRelic?.(); } catch (e) {}
-          return;
-        }
+        answer = await this.callOpenRouterInquiry(openrouterKey, question);
+        if (answer) source = 'OPENROUTER AI DUAL-TRACK';
       } catch (err) {
         console.warn('OpenRouter inquiry call failed, falling back to curated Feynman knowledge base:', err);
       }
     }
 
     // 3. Curated Feynman Knowledge Base Fallback
-    const curatedAnswer = this.getCuratedInquiryAnswer(this.activeNode.id, question);
-    this.inquiryResponseText.textContent = curatedAnswer;
-    if (this.inquirySourceTag) this.inquirySourceTag.textContent = 'FEYNMAN KNOWLEDGE VAULT';
+    if (!answer) {
+      answer = this.getCuratedInquiryAnswer(this.activeNode.id, question);
+      source = 'FEYNMAN KNOWLEDGE VAULT';
+    }
+
+    // Render Answer with Markdown
+    this.inquiryResponseText.innerHTML = this.parseMarkdown(answer);
+    if (this.inquirySourceTag) this.inquirySourceTag.textContent = source;
+
+    // Set current inquiry for saving
+    this.currentInquiry = {
+      id: 'inq_' + Date.now(),
+      nodeId: this.activeNode.id,
+      nodeTitle: this.activeNode.title,
+      question: question,
+      answer: answer,
+      date: new Date().toISOString()
+    };
+
+    // Show action buttons
+    if (this.inquiryActionsRow) this.inquiryActionsRow.style.display = 'flex';
+    if (this.btnSaveInquiry) this.btnSaveInquiry.classList.remove('saved');
+    if (this.saveInquiryBtnText) this.saveInquiryBtnText.textContent = '收藏此解碼筆記';
+
     try { window.soundEngine?.playRewardRelic?.(); } catch (e) {}
   }
 
@@ -1869,7 +2078,10 @@ class MindOdysseyApp {
 2. 【情境與案例剖析】：若用戶要求舉例或分析情境，請給出具體且接地氣的生活/職場/商業實戰案例，剖析局勢與背後博弈動機。
 3. 【現實破局手冊】：結尾給出具體、硬核、可立即落地的破局行動指南或防身心法。
 
-請使用繁體中文，層次分明，邏輯清晰透徹，長度控制在 250~450 字之間。`;
+格式排版要求：
+- 必須使用標準繁體中文 Markdown 格式。
+- 請使用 ### 標題區分段落、**粗體**標註關鍵詞、條列點梳理步驟、> 引用區塊標註核心心法。
+- 邏輯清晰透徹，長度控制在 350~550 字之間。`;
   }
 
   async callOpenRouterInquiry(apiKey, question) {
@@ -1895,7 +2107,7 @@ class MindOdysseyApp {
           body: JSON.stringify({
             model: m,
             messages: [{ role: 'user', content: prompt }],
-            max_tokens: 1024,
+            max_tokens: 4096,
             temperature: 0.7
           })
         });
@@ -1915,7 +2127,7 @@ class MindOdysseyApp {
   async callGeminiInquiry(apiKey, question) {
     const prompt = this.buildInquiryPrompt(question);
 
-    const models = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.6-flash'];
+    const models = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash'];
     let lastErr = null;
 
     for (const m of models) {
@@ -1926,7 +2138,7 @@ class MindOdysseyApp {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+            generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
           })
         });
 

@@ -285,7 +285,19 @@ class MindOdysseyApp {
 
     if (this.btnCloseRadar) {
       this.btnCloseRadar.addEventListener('click', () => {
-        this.radarModal.classList.remove('active');
+        if (this.radarModal) this.radarModal.classList.remove('active');
+      });
+    }
+
+    if (this.radarModal) {
+      this.radarModal.addEventListener('click', (e) => {
+        if (e.target === this.radarModal) this.radarModal.classList.remove('active');
+      });
+    }
+
+    if (this.settingsModal) {
+      this.settingsModal.addEventListener('click', (e) => {
+        if (e.target === this.settingsModal) this.settingsModal.classList.remove('active');
       });
     }
 

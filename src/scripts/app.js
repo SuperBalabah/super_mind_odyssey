@@ -510,15 +510,28 @@ class MindOdysseyApp {
   }
 
   loadActiveNode(nodeId = null) {
-    const targetId = nodeId || window.syncManager.state.activeNodeId || 'boxed_pigs';
-    this.activeNode = window.MIND_DATABASE.find(n => n.id === targetId) || window.MIND_DATABASE[0];
-    this.selectedOption = null;
+    const state = window.syncManager.state;
+    // Ensure customNodes are merged first
+    window.syncManager.mergeCustomNodes();
 
-    // Safety guard: If node is not synthesized yet (e.g. AI-discovered door), initiate hyperlane exploration!
-    if (!this.activeNode.dilemma) {
-      this.startFrontierExploration(this.activeNode.id, this.activeNode.title, this.activeNode.domain);
-      return;
+    let targetId = nodeId || state.activeNodeId || 'boxed_pigs';
+    this.activeNode = window.MIND_DATABASE.find(n => n.id === targetId);
+
+    // If activeNode is missing or not yet synthesized (dilemma not present):
+    // If explicitly invoked by user click (nodeId != null), then run synthesis;
+    // But if running on initial boot/refresh without explicit nodeId, gracefully pick the last completed or first playable node to prevent annoying infinite warp modals!
+    if (!this.activeNode || !this.activeNode.dilemma) {
+      if (nodeId && this.activeNode) {
+        this.startFrontierExploration(this.activeNode.id, this.activeNode.title, this.activeNode.domain);
+        return;
+      }
+      // Boot-time fallback to safe playable node:
+      const safeNode = window.MIND_DATABASE.find(n => n.dilemma) || window.MIND_DATABASE[0];
+      this.activeNode = safeNode;
+      state.activeNodeId = safeNode.id;
+      window.syncManager.saveLocalState();
     }
+    this.selectedOption = null;
 
     // Reset Inquiry Terminal state
     if (this.inquiryResponseBox) this.inquiryResponseBox.style.display = 'none';
@@ -1156,16 +1169,8 @@ class MindOdysseyApp {
         const nodeEl = document.createElement('div');
         nodeEl.className = `mind-node ${isLit ? 'lit' : isActive ? 'active-frontier' : 'fogged'}`;
 
-        let iconHtml = '';
-        if (isLit && node.relicReward && node.relicReward.svg) {
-          iconHtml = `<img src="${node.relicReward.svg}" class="node-svg-relic" alt="${node.title}">`;
-        } else if (isLit) {
-          iconHtml = `<div class="node-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><polyline points="9 12 11 14 15 10"/></svg></div>`;
-        } else if (isActive) {
-          iconHtml = `<div class="node-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg></div>`;
-        } else {
-          iconHtml = `<div class="node-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="2"/></svg></div>`;
-        }
+        // Pure Geometric Orbital Dot (No messy legacy SVGs on single nodes!)
+        const iconHtml = `<div class="node-icon-box"><span class="node-orbital-star ${isLit ? 'lit' : isActive ? 'active' : 'fogged'}">✦</span></div>`;
 
         const nodeTitleText = node.title.split('：')[0];
         const nodeEnText = node.modelEn || (isLit ? 'MASTERED' : 'FRONTIER');
@@ -1216,7 +1221,7 @@ class MindOdysseyApp {
   renderProfile() {
     const state = window.syncManager.state;
 
-    // Relics Vault Render: Grouped by Domain into Multi-Column Showcase Boxes
+    // Relics Vault Render: Grouped by Domain into Horizontal Drawer Showcase Boxes
     const relicsContainer = document.getElementById('relics-list-grid');
     if (relicsContainer) {
       relicsContainer.innerHTML = '';
@@ -1240,53 +1245,81 @@ class MindOdysseyApp {
         });
       });
 
-      domainRelicsMap.forEach((dGroup) => {
-        const boxEl = document.createElement('div');
-        boxEl.className = 'domain-showcase-box';
+      // Render Domain Drawer Buttons Bar (橫向排開好幾盒學科)
+      const drawersBar = document.createElement('div');
+      drawersBar.className = 'domain-drawers-bar';
 
-        const unlockedCount = dGroup.relics.filter(r => r.isUnlocked).length;
-        const totalCount = dGroup.relics.length;
+      const drawerContentContainer = document.createElement('div');
+      drawerContentContainer.className = 'domain-drawer-content';
 
-        boxEl.innerHTML = `
-          <div class="showcase-box-header">
-            <div class="showcase-box-title">
-              <span class="showcase-box-dot"></span>
-              <span>${dGroup.domain}</span>
+      let activeDomainName = domainRelicsMap.keys().next().value; // Default open first domain
+
+      const renderActiveDrawer = (targetDomain) => {
+        activeDomainName = targetDomain;
+        // Update bar active states
+        drawersBar.querySelectorAll('.domain-drawer-tab').forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.domain === targetDomain);
+        });
+
+        const dGroup = domainRelicsMap.get(targetDomain);
+        if (!dGroup) return;
+
+        drawerContentContainer.innerHTML = `
+          <div class="drawer-header-info">
+            <div style="font-size: 13px; font-weight: 700; color: #f8fafc;">
+              【${dGroup.domain}】收納櫃
             </div>
-            <span class="showcase-box-badge">${unlockedCount} / ${totalCount} 典藏</span>
+            <span class="showcase-box-badge">
+              已典藏 ${dGroup.relics.filter(r => r.isUnlocked).length} / ${dGroup.relics.length}
+            </span>
           </div>
-          <div class="showcase-box-grid">
+          <div class="drawer-relics-grid">
             ${dGroup.relics.map(({ node, isUnlocked }) => {
-              const iconHtml = node.relicReward.svg
-                ? `<img src="${node.relicReward.svg}" class="relic-svg-icon" alt="${node.relicReward.name}">`
-                : `<div class="relic-icon">${node.relicReward.icon || '🏆'}</div>`;
               return `
                 <div class="relic-item ${isUnlocked ? 'unlocked' : 'locked'}" data-node-id="${node.id}" title="${isUnlocked ? '點擊檢視精讀圖鑑' : '迷霧封印中'}">
                   <div class="relic-item-inner">
-                    ${iconHtml}
+                    <div class="relic-dot-core ${isUnlocked ? 'lit' : ''}">✦</div>
                     <div class="relic-info">
                       <div class="relic-name">${node.relicReward.name}</div>
                       <div class="relic-model-title">${node.title.split('：')[0]}</div>
                     </div>
                   </div>
-                  <div class="relic-hologram-glare"></div>
                 </div>
               `;
             }).join('')}
           </div>
         `;
 
-        // Click listeners on unlocked relics
-        boxEl.querySelectorAll('.relic-item.unlocked').forEach(el => {
+        // Click listeners on unlocked relics to open Codex
+        drawerContentContainer.querySelectorAll('.relic-item.unlocked').forEach(el => {
           el.addEventListener('click', () => {
             window.soundEngine?.playCardFlip?.();
             const nodeId = el.getAttribute('data-node-id');
             if (nodeId) this.openCodexModal(nodeId);
           });
         });
+      };
 
-        relicsContainer.appendChild(boxEl);
+      // Populate Drawer Tabs
+      domainRelicsMap.forEach((dGroup, dName) => {
+        const unlockedCount = dGroup.relics.filter(r => r.isUnlocked).length;
+        const tab = document.createElement('button');
+        tab.className = `domain-drawer-tab ${dName === activeDomainName ? 'active' : ''}`;
+        tab.dataset.domain = dName;
+        tab.innerHTML = `
+          <span class="drawer-tab-name">${dName}</span>
+          <span class="drawer-tab-count">${unlockedCount}/${dGroup.relics.length}</span>
+        `;
+        tab.addEventListener('click', () => {
+          window.soundEngine?.playClick?.();
+          renderActiveDrawer(dName);
+        });
+        drawersBar.appendChild(tab);
       });
+
+      relicsContainer.appendChild(drawersBar);
+      relicsContainer.appendChild(drawerContentContainer);
+      renderActiveDrawer(activeDomainName);
     }
 
     // Update Relics collected counter

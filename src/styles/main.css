@@ -2619,29 +2619,122 @@ body {
 }
 
 /* ==========================================================================
-   Domain Showcase Boxes (學科陳列盒多欄收納)
+   Horizontal Domain Drawer Showcase (橫排學科抽屜收納箱)
    ========================================================================== */
-.domain-showcase-box {
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.7), rgba(8, 12, 22, 0.95));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-md);
-  padding: 14px;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  transition: all 0.25s ease;
+.domain-drawers-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
 }
-.domain-showcase-box:hover {
-  border-color: rgba(56, 189, 248, 0.3);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.1);
+.domain-drawers-bar::-webkit-scrollbar {
+  height: 4px;
+}
+.domain-drawers-bar::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 4px;
 }
 
-.showcase-box-header {
+.domain-drawer-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+.domain-drawer-tab:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #f8fafc;
+}
+.domain-drawer-tab.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.9));
+  border-color: var(--accent-cyan);
+  color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+}
+.drawer-tab-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.domain-drawer-tab.active .drawer-tab-count {
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+}
+
+.domain-drawer-content {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.85), rgba(7, 10, 18, 0.98));
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.2s ease-in-out;
+}
+.drawer-header-info {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.drawer-relics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+/* Pure Geometric Relic Core Dot */
+.relic-dot-core {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #64748b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.relic-dot-core.lit {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+/* Node Pure Orbital Star */
+.node-orbital-star {
+  font-size: 13px;
+  display: inline-block;
+  line-height: 1;
+}
+.node-orbital-star.lit {
+  color: #22c55e;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+.node-orbital-star.active {
+  color: #38bdf8;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+}
+.node-orbital-star.fogged {
+  color: #64748b;
+  opacity: 0.7;
 }
 .showcase-box-title {
   display: flex;

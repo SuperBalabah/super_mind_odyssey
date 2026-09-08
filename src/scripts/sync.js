@@ -16,7 +16,14 @@ class SyncManager {
   mergeCustomNodes() {
     if (this.state.customNodes && Array.isArray(this.state.customNodes)) {
       this.state.customNodes.forEach(cNode => {
-        if (window.MIND_DATABASE && !window.MIND_DATABASE.some(n => n.id === cNode.id)) {
+        if (!window.MIND_DATABASE) return;
+        const existingIdx = window.MIND_DATABASE.findIndex(n => n.id === cNode.id);
+        if (existingIdx !== -1) {
+          // If stored node is more complete (has dilemma), overwrite runtime entry!
+          if (cNode.dilemma && !window.MIND_DATABASE[existingIdx].dilemma) {
+            window.MIND_DATABASE[existingIdx] = cNode;
+          }
+        } else {
           window.MIND_DATABASE.push(cNode);
         }
       });
@@ -106,15 +113,24 @@ class SyncManager {
   // Register an autonomous or user-probed node into the self-expanding graph
   addCustomNode(node) {
     if (!this.state.customNodes) this.state.customNodes = [];
-    if (!this.state.customNodes.some(n => n.id === node.id)) {
+    const existingIdx = this.state.customNodes.findIndex(n => n.id === node.id);
+    if (existingIdx !== -1) {
+      // Overwrite with newer/more complete version (e.g. newly synthesized dilemma)
+      this.state.customNodes[existingIdx] = node;
+    } else {
       this.state.customNodes.push(node);
     }
     if (!this.state.unlockedNodes.includes(node.id)) {
       this.state.unlockedNodes.push(node.id);
     }
-    // Also inject into active runtime database
-    if (window.MIND_DATABASE && !window.MIND_DATABASE.some(n => n.id === node.id)) {
-      window.MIND_DATABASE.push(node);
+    // Also inject/update into active runtime database
+    if (window.MIND_DATABASE) {
+      const dbIdx = window.MIND_DATABASE.findIndex(n => n.id === node.id);
+      if (dbIdx !== -1) {
+        window.MIND_DATABASE[dbIdx] = node;
+      } else {
+        window.MIND_DATABASE.push(node);
+      }
     }
     this.saveLocalState();
     this.tryCloudSync();

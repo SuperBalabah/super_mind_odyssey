@@ -286,41 +286,49 @@ class MindOdysseyApp {
       });
     }
 
+    // Explicit Manual Push & Pull
+    const btnCloudPush = document.getElementById('btn-cloud-push');
+    const btnCloudPull = document.getElementById('btn-cloud-pull');
+
+    if (btnCloudPush) {
+      btnCloudPush.addEventListener('click', async () => {
+        btnCloudPush.disabled = true;
+        btnCloudPush.textContent = '☁️ 備份上傳中...';
+        const res = await window.syncManager.manualCloudPush();
+        btnCloudPush.disabled = false;
+        btnCloudPush.textContent = '☁️ 手動備份至雲端 (Push)';
+        if (res && res.success) {
+          this.showToast('✅ 已成功將本機所有進度 100% 完整覆蓋備份至 Gist！');
+        } else {
+          this.showToast('❌ 備份失敗：' + (res ? res.reason : '請檢查 Gist Token 與 ID'));
+        }
+      });
+    }
+
+    if (btnCloudPull) {
+      btnCloudPull.addEventListener('click', async () => {
+        btnCloudPull.disabled = true;
+        btnCloudPull.textContent = '📥 下載同步中...';
+        const res = await window.syncManager.manualCloudPull();
+        btnCloudPull.disabled = false;
+        btnCloudPull.textContent = '📥 手動從雲端同步下來 (Pull)';
+        if (res && res.success) {
+          this.showToast('✅ 已成功從 Gist 下載最新進度並覆蓋本機！');
+          this.renderMap();
+          this.renderProfile();
+          this.loadActiveNode();
+        } else {
+          this.showToast('❌ 下載失敗：' + (res ? res.reason : '請檢查 Gist ID 與網路'));
+        }
+      });
+    }
+
     this.saveSettingsBtn.addEventListener('click', () => {
       const geminiVal = this.geminiKeyInput ? this.geminiKeyInput.value : '';
       const openrouterVal = this.openrouterKeyInput ? this.openrouterKeyInput.value : '';
       window.syncManager.saveGistConfig(this.gistTokenInput.value, this.gistIdInput.value, geminiVal, openrouterVal);
-      this.showToast('✅ 設定已儲存（含 Gemini 與 OpenRouter 雙軌金鑰）');
+      this.showToast('✅ 設定已儲存（含雙軌 API 金鑰）');
       this.settingsModal.classList.remove('active');
-      // Auto push after settings saved (connects the pipe for the first time)
-      window.syncManager.tryCloudSync(() => this.showSyncBadge());
-    });
-
-    this.btnSyncNow.addEventListener('click', async () => {
-      this.btnSyncNow.disabled = true;
-      this.btnSyncNow.innerHTML = '↻ 同步中...';
-      try {
-        // Pull first (get remote changes), then push local state up
-        const pullRes = await window.syncManager.pullFromGist();
-        const pushRes = await window.syncManager.tryCloudSync(() => this.showSyncBadge());
-        
-        if (pushRes.success || (pullRes && pullRes.success)) {
-          this.updateSyncStatus();
-          this.showToast('☁️ 雙向同步完成！(雲端與本機已對齊)');
-          this.updateHUD();
-          this.renderMap();
-          this.renderProfile();
-        } else {
-          const reason = pushRes.reason || (pullRes ? pullRes.reason : '連線失敗');
-          this.showToast('❌ 同步失敗: ' + reason);
-        }
-      } catch (err) {
-        console.error('Manual sync failed:', err);
-        this.showToast('❌ 同步錯誤: ' + (err.message || '請確認網路與金鑰'));
-      } finally {
-        this.btnSyncNow.disabled = false;
-        this.btnSyncNow.innerHTML = '↕ 雙向同步 (Pull + Push)';
-      }
     });
 
     this.btnExportJson.addEventListener('click', () => {
@@ -1221,225 +1229,143 @@ class MindOdysseyApp {
   renderProfile() {
     const state = window.syncManager.state;
 
-    // Relics Vault Render: Grouped by Domain into Horizontal Drawer Showcase Boxes
-    const relicsContainer = document.getElementById('relics-list-grid');
-    if (relicsContainer) {
-      relicsContainer.innerHTML = '';
+    // Tiered Showcase Cabinet Render (實體分層學科收納櫃)
+    const cabinetContainer = document.getElementById('relics-list-grid');
+    if (cabinetContainer) {
+      cabinetContainer.innerHTML = '';
 
-      // Collect all domains that contain relics
-      const domainRelicsMap = new Map();
-      window.MIND_DATABASE.forEach(node => {
-        if (!node.relicReward) return;
-        const dName = node.domain || '其他跨域';
-        if (!domainRelicsMap.has(dName)) {
-          domainRelicsMap.set(dName, {
-            domain: dName,
-            domainId: node.domainId,
-            relics: []
-          });
-        }
-        const isUnlocked = state.relics.some(r => r.id === node.relicReward.id);
-        domainRelicsMap.get(dName).relics.push({
-          node,
-          isUnlocked
-        });
-      });
+      const dynamicDomains = this.getDynamicDomains();
+      const totalRelicsCount = window.MIND_DATABASE.filter(n => n.relicReward).length;
+      const collectedCounter = document.getElementById('relics-collected-counter');
+      if (collectedCounter) {
+        collectedCounter.textContent = `COLLECTED: ${state.completedNodes.length} / ${window.MIND_DATABASE.length} 知識點`;
+      }
 
-      // Render Domain Drawer Buttons Bar (橫向排開好幾盒學科)
-      const drawersBar = document.createElement('div');
-      drawersBar.className = 'domain-drawers-bar';
+      // Group domains into shelves (3 domains per shelf)
+      const shelves = [];
+      const domainsPerShelf = 3;
+      for (let i = 0; i < dynamicDomains.length; i += domainsPerShelf) {
+        shelves.push(dynamicDomains.slice(i, i + domainsPerShelf));
+      }
 
-      const drawerContentContainer = document.createElement('div');
-      drawerContentContainer.className = 'domain-drawer-content';
+      shelves.forEach((shelfDomains, shelfIdx) => {
+        const shelfEl = document.createElement('div');
+        shelfEl.className = 'cabinet-shelf-tier';
 
-      let activeDomainName = domainRelicsMap.keys().next().value; // Default open first domain
+        const boxesContainer = document.createElement('div');
+        boxesContainer.className = 'shelf-boxes-row';
 
-      const renderActiveDrawer = (targetDomain) => {
-        activeDomainName = targetDomain;
-        // Update bar active states
-        drawersBar.querySelectorAll('.domain-drawer-tab').forEach(tab => {
-          tab.classList.toggle('active', tab.dataset.domain === targetDomain);
-        });
+        shelfDomains.forEach(domain => {
+          const domainNodes = window.MIND_DATABASE.filter(n => n.domainId === domain.id);
+          const masteredCount = domainNodes.filter(n => state.completedNodes.includes(n.id)).length;
+          const totalCount = domainNodes.length;
+          const isFullyMastered = masteredCount > 0 && masteredCount === totalCount;
 
-        const dGroup = domainRelicsMap.get(targetDomain);
-        if (!dGroup) return;
+          const boxEl = document.createElement('div');
+          boxEl.className = `domain-storage-box ${isFullyMastered ? 'mastered' : masteredCount > 0 ? 'in-progress' : 'empty'}`;
+          boxEl.style.setProperty('--domain-color', domain.color);
 
-        drawerContentContainer.innerHTML = `
-          <div class="drawer-header-info">
-            <div style="font-size: 13px; font-weight: 700; color: #f8fafc;">
-              【${dGroup.domain}】收納櫃
+          boxEl.innerHTML = `
+            <div class="box-lid"></div>
+            <div class="box-body">
+              <div class="box-glyph">${domain.glyph}</div>
+              <div class="box-title">${domain.name.split(' (')[0]}</div>
+              <div class="box-progress-pill">${masteredCount} / ${totalCount} 已掌握</div>
             </div>
-            <span class="showcase-box-badge">
-              已典藏 ${dGroup.relics.filter(r => r.isUnlocked).length} / ${dGroup.relics.length}
-            </span>
-          </div>
-          <div class="drawer-relics-grid">
-            ${dGroup.relics.map(({ node, isUnlocked }) => {
-              return `
-                <div class="relic-item ${isUnlocked ? 'unlocked' : 'locked'}" data-node-id="${node.id}" title="${isUnlocked ? '點擊檢視精讀圖鑑' : '迷霧封印中'}">
-                  <div class="relic-item-inner">
-                    <div class="relic-dot-core ${isUnlocked ? 'lit' : ''}">✦</div>
-                    <div class="relic-info">
-                      <div class="relic-name">${node.relicReward.name}</div>
-                      <div class="relic-model-title">${node.title.split('：')[0]}</div>
-                    </div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        `;
+          `;
 
-        // Click listeners on unlocked relics to open Codex
-        drawerContentContainer.querySelectorAll('.relic-item.unlocked').forEach(el => {
-          el.addEventListener('click', () => {
+          boxEl.addEventListener('click', () => {
             window.soundEngine?.playCardFlip?.();
-            const nodeId = el.getAttribute('data-node-id');
-            if (nodeId) this.openCodexModal(nodeId);
+            this.openDomainDrawerModal(domain, domainNodes);
           });
-        });
-      };
 
-      // Populate Drawer Tabs
-      domainRelicsMap.forEach((dGroup, dName) => {
-        const unlockedCount = dGroup.relics.filter(r => r.isUnlocked).length;
-        const tab = document.createElement('button');
-        tab.className = `domain-drawer-tab ${dName === activeDomainName ? 'active' : ''}`;
-        tab.dataset.domain = dName;
-        tab.innerHTML = `
-          <span class="drawer-tab-name">${dName}</span>
-          <span class="drawer-tab-count">${unlockedCount}/${dGroup.relics.length}</span>
-        `;
-        tab.addEventListener('click', () => {
-          window.soundEngine?.playClick?.();
-          renderActiveDrawer(dName);
+          boxesContainer.appendChild(boxEl);
         });
-        drawersBar.appendChild(tab);
+
+        // The wooden/metallic shelf beam under the boxes
+        const shelfBeam = document.createElement('div');
+        shelfBeam.className = 'shelf-beam-bar';
+
+        shelfEl.appendChild(boxesContainer);
+        shelfEl.appendChild(shelfBeam);
+        cabinetContainer.appendChild(shelfEl);
       });
-
-      relicsContainer.appendChild(drawersBar);
-      relicsContainer.appendChild(drawerContentContainer);
-      renderActiveDrawer(activeDomainName);
     }
 
-    // Update Relics collected counter
     const collectedCountEl = document.getElementById('relics-collected-counter');
     if (collectedCountEl) {
       const totalRelics = window.MIND_DATABASE.filter(n => n.relicReward).length;
-      collectedCountEl.textContent = `COLLECTED: ${state.relics.length} / ${totalRelics}`;
+      collectedCountEl.textContent = `COLLECTED: ${state.completedNodes.length} / ${window.MIND_DATABASE.length}`;
     }
-
-    // Persona Calculation
-    const personaTitle = document.getElementById('persona-title');
-    const personaDesc = document.getElementById('persona-desc');
-    if (personaTitle && personaDesc) {
-      const choices = state.userChoices || [];
-      const countB = choices.filter(c => c.choiceId === 'B').length;
-      const ratio = choices.length > 0 ? countB / choices.length : 0.5;
-
-      if (ratio >= 0.7) {
-        personaTitle.textContent = '冷靜反骨策略家 // TACTICAL CONTRARIAN';
-        personaDesc.textContent = '你在多數困境中傾向尋找非典型最優解，不隨波逐流，懂得適時保存體力與及時止損。';
-      } else if (ratio <= 0.3) {
-        personaTitle.textContent = '勇敢拓荒行動派 // BOLD PIONEER';
-        personaDesc.textContent = '你崇尚以行動打破未知，願意主動承擔拓荒成本，是推進團隊走出停滯的破局者。';
-      } else {
-        personaTitle.textContent = '動態均衡博弈者 // EQUILIBRIUM NAVIGATOR';
-        personaDesc.textContent = '你的心智彈性極高，善於根據環境規則與博弈對手的行動，靈活切換激進與防守策略。';
-      }
-    }
-
-    // Render Cognitive Radar
-    this.drawCognitiveRadar();
   }
 
-  drawCognitiveRadar() {
-    const canvas = document.getElementById('cognitive-radar-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  openDomainDrawerModal(domain, domainNodes) {
+    const modal = document.getElementById('domain-drawer-modal');
+    const titleEl = document.getElementById('drawer-modal-title');
+    const glyphEl = document.getElementById('drawer-modal-glyph');
+    const summaryEl = document.getElementById('drawer-matrix-summary');
+    const listEl = document.getElementById('drawer-matrix-list');
+    const closeBtn = document.getElementById('btn-close-drawer');
+    if (!modal || !listEl) return;
 
-    const width = canvas.width;
-    const height = canvas.height;
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = Math.min(centerX, centerY) - 30;
-
-    ctx.clearRect(0, 0, width, height);
+    if (titleEl) titleEl.textContent = `${domain.name.split(' (')[0]} // 典藏收納盒`;
+    if (glyphEl) glyphEl.innerHTML = domain.glyph;
 
     const state = window.syncManager.state;
-    const choices = state.userChoices || [];
-    const completedCount = state.completedNodes.length;
-    const streak = state.streak || 1;
+    const masteredCount = domainNodes.filter(n => state.completedNodes.includes(n.id)).length;
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 8px 12px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.06);">
+          <span>學科進度：已掌握 ${masteredCount} / ${domainNodes.length} 個心智模型</span>
+          <span style="color: ${domain.color}; font-family: var(--font-mono); font-weight: 700;">${Math.round((masteredCount / domainNodes.length) * 100)}%</span>
+        </div>
+      `;
+    }
 
-    // Calculate 4 dimensions (0 - 100)
-    const countB = choices.filter(c => c.choiceId === 'B').length;
-    const rationality = Math.min(95, 45 + countB * 12);
-    const intuition = Math.min(95, 45 + (choices.length - countB) * 12);
-    const insight = Math.min(98, 40 + completedCount * 8);
-    const resilience = Math.min(95, 50 + streak * 8);
+    listEl.innerHTML = '';
+    domainNodes.forEach(node => {
+      const isLit = state.completedNodes.includes(node.id);
+      const nodeTitleText = node.title.split('：')[0];
+      const savedNotes = (state.inquiryArchive || []).filter(i => i.nodeId === node.id || (i.nodeTitle && i.nodeTitle.includes(nodeTitleText)));
 
-    const attributes = [
-      { label: '戰略理性', val: rationality, angle: -Math.PI / 2 },
-      { label: '破局直覺', val: intuition, angle: 0 },
-      { label: '系統洞察', val: insight, angle: Math.PI / 2 },
-      { label: '抗熵韌性', val: resilience, angle: Math.PI }
-    ];
+      const itemCard = document.createElement('div');
+      itemCard.className = `drawer-node-card ${isLit ? 'mastered' : 'fogged'}`;
+      itemCard.style.cursor = isLit ? 'pointer' : 'default';
 
-    // Draw background concentric webs
-    const levels = [0.25, 0.5, 0.75, 1.0];
-    levels.forEach(lvl => {
-      ctx.beginPath();
-      attributes.forEach((attr, idx) => {
-        const x = centerX + Math.cos(attr.angle) * radius * lvl;
-        const y = centerY + Math.sin(attr.angle) * radius * lvl;
-        if (idx === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.closePath();
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      itemCard.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="drawer-node-dot ${isLit ? 'lit' : 'fogged'}">✦</span>
+            <div>
+              <div class="drawer-node-title">${nodeTitleText}</div>
+              <div class="drawer-node-sub">${node.modelEn || ''}</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            ${savedNotes.length > 0 ? `<span class="drawer-notes-tag" title="${savedNotes.length} 則追問筆記">💬 ${savedNotes.length} 則筆記</span>` : ''}
+            <span class="drawer-node-status ${isLit ? 'lit' : 'fogged'}">
+              ${isLit ? '✦ 已掌握 (點擊查看整理)' : '🔒 迷霧待闖關'}
+            </span>
+          </div>
+        </div>
+      `;
+
+      if (isLit) {
+        itemCard.addEventListener('click', () => {
+          modal.classList.remove('active');
+          window.soundEngine?.playCardFlip?.();
+          this.openCodexModal(node.id);
+        });
+      }
+
+      listEl.appendChild(itemCard);
     });
 
-    // Draw axis lines & labels
-    attributes.forEach(attr => {
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY);
-      ctx.lineTo(centerX + Math.cos(attr.angle) * radius, centerY + Math.sin(attr.angle) * radius);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-      ctx.stroke();
+    if (closeBtn) {
+      closeBtn.onclick = () => modal.classList.remove('active');
+    }
 
-      ctx.font = '10px monospace';
-      ctx.fillStyle = '#94a3b8';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const lx = centerX + Math.cos(attr.angle) * (radius + 18);
-      const ly = centerY + Math.sin(attr.angle) * (radius + 18);
-      ctx.fillText(`${attr.label} ${attr.val}`, lx, ly);
-    });
-
-    // Draw filled player polygon
-    ctx.beginPath();
-    attributes.forEach((attr, idx) => {
-      const dist = (attr.val / 100) * radius;
-      const x = centerX + Math.cos(attr.angle) * dist;
-      const y = centerY + Math.sin(attr.angle) * dist;
-      if (idx === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
-    ctx.fill();
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = '#38bdf8';
-    ctx.shadowBlur = 8;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Render archived inquiry notes
-    this.renderInquiryArchive();
+    modal.classList.add('active');
   }
 
   // -------------------------------------------------------------
@@ -1554,6 +1480,33 @@ class MindOdysseyApp {
           ${node.takeaway ? node.takeaway.action : '將此思維模型融入日常決策，在關鍵時刻打破群體從眾與直覺盲點。'}
         </div>
       </div>
+
+      ${(() => {
+        const nodeTitleText = node.title.split('：')[0];
+        const savedNotes = (state.inquiryArchive || []).filter(i => i.nodeId === node.id || (i.nodeTitle && i.nodeTitle.includes(nodeTitleText)));
+        if (savedNotes.length === 0) return '';
+        return `
+          <div class="codex-section" style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.03);">
+            <div class="codex-sec-title" style="color: #38bdf8;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              深度追問與延伸筆記 // SAVED INQUIRIES (${savedNotes.length} 則)
+            </div>
+            <div class="codex-saved-notes-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+              ${savedNotes.map(item => `
+                <div class="codex-note-item" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: var(--radius-sm); padding: 12px;">
+                  <div style="font-weight: 700; color: #f8fafc; font-size: 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                    <span style="color: #38bdf8;">❓</span>
+                    <span>${item.question}</span>
+                  </div>
+                  <div class="inquiry-response-text" style="font-size: 12px; line-height: 1.6; color: #cbd5e1;">
+                    ${this.parseMarkdown(item.answer)}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      })()}
     `;
 
     modal.classList.add('active');

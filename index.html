@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="src/styles/main.css?v=2.4.3">
+  <link rel="stylesheet" href="src/styles/main.css?v=2.4.4">
 </head>
 <body>
   <!-- Ambient Cosmic Starfield Background Canvas -->
@@ -368,64 +368,29 @@
       </div>
     </section>
 
-    <!-- MAIN VIEW 3: Explorer Dossier & Relics Vault (拓荒艦長檔案與神器庫) -->
+    <!-- MAIN VIEW 3: Explorer Dossier & Relics Vault (思維陳列室) -->
     <section class="page-view" id="view-profile">
       <div class="profile-container">
         
-        <!-- Commander Dossier & Cognitive Radar -->
-        <div class="persona-card tactical-frame">
+        <!-- Tiered Showcase Cabinet (學科典藏收納櫃) -->
+        <div class="cabinet-section tactical-frame">
           <div class="terminal-corner tl"></div>
           <div class="terminal-corner tr"></div>
           <div class="terminal-corner bl"></div>
           <div class="terminal-corner br"></div>
 
-          <div class="persona-header-row">
-            <div class="persona-badge">COMMANDER DOSSIER // 拓荒決策風格</div>
-            <span class="tech-stamp">CLASS: STRATEGIST</span>
-          </div>
-          
-          <h2 class="persona-name" id="persona-title">冷靜反骨策略家</h2>
-          <p class="persona-desc" id="persona-desc">
-            你在多數困境中傾向尋找非典型最優解，不隨波逐流，懂得適時保存體力與及時止損。
-          </p>
-
-          <!-- 4-Axis Cognitive Radar Chart Canvas -->
-          <div class="cognitive-radar-box">
-            <div class="radar-box-title">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22 12 2"/></svg>
-              <span>四維心智雷達圖譜 // COGNITIVE ATTRIBUTES</span>
-            </div>
-            <div class="radar-canvas-container">
-              <canvas id="cognitive-radar-canvas" width="280" height="200"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mind Relics Vault -->
-        <div>
-          <div class="relics-vault-header">
+          <div class="cabinet-header">
             <div class="relics-vault-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-              <span>思維神器陳列室 // ARTIFACTS VAULT</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18"/></svg>
+              <span>學科思維典藏櫃 // KNOWLEDGE VAULT</span>
             </div>
-            <span class="tech-code" id="relics-collected-counter">COLLECTED: 0/11</span>
+            <span class="tech-code" id="relics-collected-counter">COLLECTED: 0 / 11</span>
           </div>
-          <div class="relics-grid" id="relics-list-grid">
-            <!-- Dynamically rendered 3D tilt relic cases -->
-          </div>
-        </div>
+          <p class="cabinet-desc">點擊各學科典藏收納盒，即可展開檢視旗下所有已掌握的心智模型、迷霧未解節點與深度追問筆記。</p>
 
-        <!-- Archived Inquiries Vault (戰術追問解碼庫) -->
-        <div class="inquiry-archive-section" style="margin-top: 24px;">
-          <div class="relics-vault-header">
-            <div class="relics-vault-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>戰術追問解碼庫 // ARCHIVED INQUIRIES</span>
-            </div>
-            <span class="tech-code" id="inquiries-counter">COLLECTED: 0</span>
-          </div>
-          <div class="inquiry-archive-list" id="inquiry-archive-list">
-            <!-- Dynamically rendered saved inquiries -->
+          <!-- Dynamic Multi-Tier Cabinet Shelves -->
+          <div class="cabinet-shelves-container" id="relics-list-grid">
+            <!-- Dynamically injected tiered shelves with domain storage boxes -->
           </div>
         </div>
 
@@ -505,15 +470,18 @@
         <span class="form-help">純本機存儲。當 Gemini 配額暫時受限時，作為無縫自動備援線路。</span>
       </div>
 
-      <div style="display: flex; gap: 8px;">
-        <button class="btn-action-primary" id="btn-sync-now" style="flex: 1; padding: 10px;">
-          ↕ 雙向同步 (Pull + Push)
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn-action-primary" id="btn-cloud-push" style="flex: 1; padding: 10px; font-size: 12px; background: linear-gradient(135deg, #0284c7, #0369a1);">
+          ☁️ 手動備份至雲端 (Push)
         </button>
-        <button class="btn-action-ghost" id="btn-save-settings" style="padding: 10px 16px;">
-          儲存設定
+        <button class="btn-action-primary" id="btn-cloud-pull" style="flex: 1; padding: 10px; font-size: 12px; background: linear-gradient(135deg, #059669, #047857);">
+          📥 手動從雲端同步下來 (Pull)
+        </button>
+        <button class="btn-action-ghost" id="btn-save-settings" style="padding: 10px 14px; font-size: 12px;">
+          儲存金鑰設定
         </button>
       </div>
-      <div id="sync-status-line" style="font-size: 10px; font-family: var(--font-mono); color: #64748b; margin-top: 4px; text-align: right;">上次同步：從未</div>
+      <div id="sync-status-line" style="font-size: 10px; font-family: var(--font-mono); color: #64748b; margin-top: 6px; text-align: right;">狀態：本機優先 // 手動覆蓋模式</div>
 
       <hr style="border: none; border-top: 1px solid var(--glass-border);">
 
@@ -569,6 +537,27 @@
           <button class="probe-tag-btn" data-topic="控制論：正負反饋調節迴路" data-domain="控制工程">控制論・反饋調節</button>
           <button class="probe-tag-btn" data-topic="生態系統學：頂級捕食者引發的營養級瀑布" data-domain="生態系統學">生態學・營養級聯</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Domain Drawer Detail Modal (學科收納盒展開面板：已點亮與迷霧知識點) -->
+  <div class="modal-overlay" id="domain-drawer-modal">
+    <div class="modal-card" style="max-width: 620px; width: 92%; max-height: 85vh; overflow-y: auto; padding: 22px;">
+      <div class="modal-header" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span id="drawer-modal-glyph" style="display: flex; align-items: center; color: var(--accent-cyan);"></span>
+          <span class="modal-title" id="drawer-modal-title">學科典藏收納盒 // DOMAIN VAULT</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-drawer">&times;</button>
+      </div>
+
+      <div class="drawer-matrix-summary" id="drawer-matrix-summary" style="font-size: 12px; color: #94a3b8; margin-bottom: 14px;">
+        <!-- Dynamically rendered domain mastery counter -->
+      </div>
+
+      <div class="drawer-matrix-list" id="drawer-matrix-list" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Injected list of mastered and fogged nodes in this domain -->
       </div>
     </div>
   </div>

@@ -723,7 +723,13 @@ class MindOdysseyApp {
     const doors = this.activeNode.doors || [];
     this.renderDoorCards(doors, false);
 
-    // If user has API keys configured, dynamically explore 3 uncharted horizon doors
+    // If activeNode already has bundled doors (generated during frontier synthesis), use them directly!
+    if (this.activeNode.doors && Array.isArray(this.activeNode.doors) && this.activeNode.doors.length >= 3) {
+      this.renderDoorCards(this.activeNode.doors, true);
+      return;
+    }
+
+    // Fallback: If user has API keys configured, dynamically explore 3 uncharted horizon doors
     const geminiKey = window.syncManager.gistConfig.geminiApiKey || '';
     const openrouterKey = window.syncManager.gistConfig.openrouterApiKey || '';
     if (geminiKey || openrouterKey) {
@@ -1009,16 +1015,56 @@ class MindOdysseyApp {
   getDynamicDomains() {
     const domainMap = new Map();
 
+    // 30+ Extended Curated Domain Vector Icons (Lucide Clean Vector Aesthetics)
     const glyphMap = {
+      // 1. 博弈與決策
       game_theory: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 6 12 12 16 14"/></svg>`,
+      decision_science: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>`,
+      military_strategy: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 8 21 9 17 14 18 20 12 17 6 20 7 14 3 9 9 8 12 2"/></svg>`,
+
+      // 2. 經濟與商業金融
       economics: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
+      finance: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`,
+      management: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+
+      // 3. 社會與心理學
       sociology: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+      psychology: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-5.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-5.04z"/></svg>`,
+      anthropology: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`,
+
+      // 4. 自然科學
       physics: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(30 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(-30 12 12)"/></svg>`,
+      quantum: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="10"/></svg>`,
+      astronomy: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>`,
+      chemistry: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31L4.15 20.3a1.5 1.5 0 0 0 1.3 2.2h13.1a1.5 1.5 0 0 0 1.3-2.2L14 9.31V2"/></svg>`,
       evolutionary_bio: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M2 9c6.667 6 13.333 0 20 6"/></svg>`,
+      ecology: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`,
+
+      // 5. 數學、統計與資訊工程
       statistics: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="21"/></svg>`,
+      probability: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="15.5" r="1.5"/><circle cx="12" cy="12" r="1.5"/></svg>`,
+      computer_science: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+      artificial_intelligence: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>`,
+      cybernetics: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+      cryptography: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+
+      // 6. 系統與跨學科
       complex_systems: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+      information_theory: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+      evolutionary_cooperation: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+
+      // 7. 哲學與人文
       philosophy: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
-      default: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2"/></svg>`
+      logic: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+      epistemology: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+      ethics: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
+      history: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>`,
+      linguistics: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+
+      // 8. 探索與通用預設
+      neuroscience: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>`,
+      heuristics: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`,
+      default: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 8 4 4-4 4M8 12h8"/></svg>`
     };
 
     const meta = {
@@ -1124,8 +1170,15 @@ class MindOdysseyApp {
         const nodeTitleText = node.title.split('：')[0];
         const nodeEnText = node.modelEn || (isLit ? 'MASTERED' : 'FRONTIER');
 
+        // Check if user has saved deep inquiry notes for this node
+        const nodeInquiries = (state.inquiryArchive || []).filter(i => i.nodeId === node.id || (i.nodeTitle && i.nodeTitle.includes(nodeTitleText)));
+        const noteBadgeHtml = nodeInquiries.length > 0
+          ? `<div class="node-inquiry-pill" title="已儲存 ${nodeInquiries.length} 則深度解碼筆記">💬 ${nodeInquiries.length}</div>`
+          : '';
+
         nodeEl.innerHTML = `
           ${isActive ? `<div class="active-frontier-tag"><span class="frontier-pulse-dot"></span> 拓荒中</div>` : (!isLit ? `<div class="fogged-frontier-tag">🌫️ 待闖關</div>` : '')}
+          ${noteBadgeHtml}
           ${iconHtml}
           <div class="node-title">${nodeTitleText}</div>
           <div class="node-en-sub">${nodeEnText}</div>
@@ -1163,73 +1216,84 @@ class MindOdysseyApp {
   renderProfile() {
     const state = window.syncManager.state;
 
-    // Relics list with SVG icons & 3D Tilt Glare
+    // Relics Vault Render: Grouped by Domain into Multi-Column Showcase Boxes
     const relicsContainer = document.getElementById('relics-list-grid');
     if (relicsContainer) {
       relicsContainer.innerHTML = '';
+
+      // Collect all domains that contain relics
+      const domainRelicsMap = new Map();
       window.MIND_DATABASE.forEach(node => {
         if (!node.relicReward) return;
-        const isUnlocked = state.relics.some(r => r.id === node.relicReward.id);
-
-        const relicEl = document.createElement('div');
-        relicEl.className = `relic-item ${isUnlocked ? 'unlocked' : 'locked'}`;
-        if (isUnlocked) relicEl.style.cursor = 'pointer';
-
-        const iconHtml = node.relicReward.svg
-          ? `<img src="${node.relicReward.svg}" class="relic-svg-icon" alt="${node.relicReward.name}">`
-          : `<div class="relic-icon">${node.relicReward.icon}</div>`;
-
-        relicEl.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 14px; position: relative; z-index: 2;">
-            ${iconHtml}
-            <div>
-              <div class="relic-name">${node.relicReward.name}</div>
-              <div class="relic-domain">${node.relicReward.domain}${node.modelEn ? ` • ${node.modelEn}` : ''} • ${isUnlocked ? '✦ 已收錄 (點擊精讀)' : '🔒 迷霧封印'}</div>
-            </div>
-          </div>
-          <div class="relic-hologram-glare"></div>
-        `;
-
-        // Click on unlocked relic opens Codex Reader View
-        if (isUnlocked) {
-          relicEl.addEventListener('click', () => {
-            window.soundEngine?.playCardFlip?.();
-            this.openCodexModal(node.id);
+        const dName = node.domain || '其他跨域';
+        if (!domainRelicsMap.has(dName)) {
+          domainRelicsMap.set(dName, {
+            domain: dName,
+            domainId: node.domainId,
+            relics: []
           });
         }
+        const isUnlocked = state.relics.some(r => r.id === node.relicReward.id);
+        domainRelicsMap.get(dName).relics.push({
+          node,
+          isUnlocked
+        });
+      });
 
-        // 3D Tilt Effect on mousemove / touch
-        relicEl.addEventListener('mousemove', (e) => {
-          if (!isUnlocked) return;
-          const rect = relicEl.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          const centerX = rect.width / 2;
-          const centerY = rect.height / 2;
-          const rotateX = ((y - centerY) / centerY) * -12;
-          const rotateY = ((x - centerX) / centerX) * 12;
-          relicEl.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
-          const glare = relicEl.querySelector('.relic-hologram-glare');
-          if (glare) {
-            glare.style.opacity = '1';
-            glare.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 70%)`;
-          }
+      domainRelicsMap.forEach((dGroup) => {
+        const boxEl = document.createElement('div');
+        boxEl.className = 'domain-showcase-box';
+
+        const unlockedCount = dGroup.relics.filter(r => r.isUnlocked).length;
+        const totalCount = dGroup.relics.length;
+
+        boxEl.innerHTML = `
+          <div class="showcase-box-header">
+            <div class="showcase-box-title">
+              <span class="showcase-box-dot"></span>
+              <span>${dGroup.domain}</span>
+            </div>
+            <span class="showcase-box-badge">${unlockedCount} / ${totalCount} 典藏</span>
+          </div>
+          <div class="showcase-box-grid">
+            ${dGroup.relics.map(({ node, isUnlocked }) => {
+              const iconHtml = node.relicReward.svg
+                ? `<img src="${node.relicReward.svg}" class="relic-svg-icon" alt="${node.relicReward.name}">`
+                : `<div class="relic-icon">${node.relicReward.icon || '🏆'}</div>`;
+              return `
+                <div class="relic-item ${isUnlocked ? 'unlocked' : 'locked'}" data-node-id="${node.id}" title="${isUnlocked ? '點擊檢視精讀圖鑑' : '迷霧封印中'}">
+                  <div class="relic-item-inner">
+                    ${iconHtml}
+                    <div class="relic-info">
+                      <div class="relic-name">${node.relicReward.name}</div>
+                      <div class="relic-model-title">${node.title.split('：')[0]}</div>
+                    </div>
+                  </div>
+                  <div class="relic-hologram-glare"></div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+
+        // Click listeners on unlocked relics
+        boxEl.querySelectorAll('.relic-item.unlocked').forEach(el => {
+          el.addEventListener('click', () => {
+            window.soundEngine?.playCardFlip?.();
+            const nodeId = el.getAttribute('data-node-id');
+            if (nodeId) this.openCodexModal(nodeId);
+          });
         });
 
-        relicEl.addEventListener('mouseleave', () => {
-          relicEl.style.transform = '';
-          const glare = relicEl.querySelector('.relic-hologram-glare');
-          if (glare) glare.style.opacity = '0';
-        });
-
-        relicsContainer.appendChild(relicEl);
+        relicsContainer.appendChild(boxEl);
       });
     }
 
     // Update Relics collected counter
     const collectedCountEl = document.getElementById('relics-collected-counter');
     if (collectedCountEl) {
-      collectedCountEl.textContent = `COLLECTED: ${state.relics.length}/11`;
+      const totalRelics = window.MIND_DATABASE.filter(n => n.relicReward).length;
+      collectedCountEl.textContent = `COLLECTED: ${state.relics.length} / ${totalRelics}`;
     }
 
     // Persona Calculation
@@ -1979,52 +2043,76 @@ class MindOdysseyApp {
     if (!this.inquiryArchiveList) return;
     const archive = window.syncManager.state.inquiryArchive || [];
     if (this.inquiriesCounter) {
-      this.inquiriesCounter.textContent = `COLLECTED: ${archive.length}`;
+      this.inquiriesCounter.textContent = `COLLECTED: ${archive.length} 則主題筆記`;
     }
 
     if (archive.length === 0) {
       this.inquiryArchiveList.innerHTML = `
         <div class="inquiry-archive-empty">
-          尚無已收藏的追問解碼筆記。在今日拓荒的「戰術深度追問終端」發射問題後，點擊「收藏此解碼筆記」即可永久留存於此！
+          尚無已收藏的追問筆記。在探索關卡時於「戰術深度追問終端」發射問題，點擊「⭐ 存入專屬筆記」即可自動歸入該心智模型旗下！
         </div>
       `;
       return;
     }
 
-    this.inquiryArchiveList.innerHTML = '';
+    // Group archived inquiries by nodeTitle / nodeId
+    const grouped = new Map();
     archive.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'inquiry-archive-card';
-      const formattedDate = item.date ? new Date(item.date).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-      
-      card.innerHTML = `
-        <div class="inquiry-archive-meta">
-          <span class="inquiry-archive-tag">${item.nodeTitle ? item.nodeTitle.split('：')[0] : '心智解碼'}</span>
+      const key = item.nodeTitle || '通用心智模型';
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          nodeTitle: key,
+          domain: item.domain || '心智模型',
+          items: []
+        });
+      }
+      grouped.get(key).items.push(item);
+    });
+
+    this.inquiryArchiveList.innerHTML = '';
+    grouped.forEach((group, title) => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'inquiry-group-box';
+      groupEl.innerHTML = `
+        <div class="inquiry-group-header">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="inquiry-archive-date">${formattedDate}</span>
-            <button class="inquiry-archive-del-btn" title="刪除此筆記">✕ 刪除</button>
+            <span class="inquiry-group-dot"></span>
+            <span class="inquiry-group-title">${title.split('：')[0]}</span>
+            <span class="inquiry-group-count">${group.items.length} 則筆記</span>
           </div>
+          <span class="inquiry-group-domain">${group.domain}</span>
         </div>
-        <div class="inquiry-archive-q">
-          <span class="q-icon">❓</span>
-          <span>${item.question}</span>
-        </div>
-        <div class="inquiry-archive-ans inquiry-response-text">
-          ${this.parseMarkdown(item.answer)}
+        <div class="inquiry-group-items">
+          ${group.items.map(item => `
+            <div class="inquiry-archive-card" data-inq-id="${item.id}">
+              <div class="inquiry-archive-meta">
+                <div class="inquiry-archive-q">
+                  <span class="q-icon">❓</span>
+                  <span>${item.question}</span>
+                </div>
+                <button class="inquiry-archive-del-btn" data-id="${item.id}" title="刪除此筆記">✕</button>
+              </div>
+              <div class="inquiry-archive-ans inquiry-response-text">
+                ${this.parseMarkdown(item.answer)}
+              </div>
+            </div>
+          `).join('')}
         </div>
       `;
 
-      const delBtn = card.querySelector('.inquiry-archive-del-btn');
-      if (delBtn) {
-        delBtn.addEventListener('click', (e) => {
+      // Bind delete buttons
+      groupEl.querySelectorAll('.inquiry-archive-del-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          window.syncManager.deleteArchivedInquiry(item.id);
+          const inqId = btn.getAttribute('data-id');
+          window.syncManager.deleteArchivedInquiry(inqId);
           this.renderInquiryArchive();
-          this.showToast('🗑️ 已自追問庫中移除筆記');
+          this.renderMap();
+          this.showToast('🗑️ 已移除該則追問筆記');
         });
-      }
+      });
 
-      this.inquiryArchiveList.appendChild(card);
+      this.inquiryArchiveList.appendChild(groupEl);
     });
   }
 
@@ -2077,6 +2165,7 @@ class MindOdysseyApp {
       id: 'inq_' + Date.now(),
       nodeId: this.activeNode.id,
       nodeTitle: this.activeNode.title,
+      domain: this.activeNode.domain,
       question: question,
       answer: answer,
       date: new Date().toISOString()
@@ -2085,7 +2174,13 @@ class MindOdysseyApp {
     // Show action buttons
     if (this.inquiryActionsRow) this.inquiryActionsRow.style.display = 'flex';
     if (this.btnSaveInquiry) this.btnSaveInquiry.classList.remove('saved');
-    if (this.saveInquiryBtnText) this.saveInquiryBtnText.textContent = '收藏此解碼筆記';
+    if (this.saveInquiryBtnText) this.saveInquiryBtnText.textContent = `⭐ 存入【${this.activeNode.title.split('：')[0]}】專屬筆記`;
+
+    // Clear input to allow continuous consecutive inquiries on the same node
+    if (this.inquiryCustomInput) {
+      this.inquiryCustomInput.value = '';
+      this.inquiryCustomInput.placeholder = '可繼續針對此主題提出延伸問題（支援連續追問）...';
+    }
 
     try { window.soundEngine?.playRewardRelic?.(); } catch (e) {}
   }

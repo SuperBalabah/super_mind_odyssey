@@ -2618,5 +2618,157 @@ body {
   to { opacity: 1; }
 }
 
+/* ==========================================================================
+   Domain Showcase Boxes (學科陳列盒多欄收納)
+   ========================================================================== */
+.domain-showcase-box {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.7), rgba(8, 12, 22, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s ease;
+}
+.domain-showcase-box:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.1);
+}
+
+.showcase-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.showcase-box-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.5px;
+}
+.showcase-box-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+.showcase-box-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.showcase-box-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+.relic-item-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.relic-info {
+  flex: 1;
+  min-width: 0;
+}
+.relic-model-title {
+  font-size: 10px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   Thematic Inquiry Note Groups (原主題專屬筆記卡)
+   ========================================================================== */
+.inquiry-group-box {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(10, 15, 28, 0.95));
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.inquiry-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.inquiry-group-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #f8fafc;
+}
+.inquiry-group-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+.inquiry-group-domain {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #94a3b8;
+}
+.inquiry-group-items {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.inquiry-archive-del-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+.inquiry-archive-del-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Node Micro Inquiry Badge in Starmap */
+.node-inquiry-pill {
+  position: absolute;
+  bottom: -6px;
+  right: 6px;
+  background: rgba(14, 165, 233, 0.95);
+  color: #040814;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+  z-index: 5;
+  pointer-events: none;
+}
+
 
 

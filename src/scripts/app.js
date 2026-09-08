@@ -75,7 +75,11 @@ class MindOdysseyApp {
 
     // Doors elements
     this.doorsContainer = document.getElementById('doors-list-container');
-    this.btnPassDoors = document.getElementById('btn-pass-doors');
+    this.btnImportDoors = document.getElementById('btn-import-doors');
+    this.btnSkipDoors = document.getElementById('btn-skip-doors');
+    this.doorsSelectedCount = document.getElementById('doors-selected-count');
+    this.selectedDoorIds = new Set();
+    this.currentDoors = [];
 
     // Jargon Bubble
     this.jargonBubble = document.getElementById('jargon-bubble-popover');
@@ -240,11 +244,19 @@ class MindOdysseyApp {
       });
     }
 
-    // Pass Doors (Random exploration)
-    if (this.btnPassDoors) {
-      this.btnPassDoors.addEventListener('click', () => {
-        window.soundEngine.playPortalSelect();
-        this.handlePassDoors();
+    // Doors Multi-selection Import
+    if (this.btnImportDoors) {
+      this.btnImportDoors.addEventListener('click', () => {
+        this.handleImportSelectedDoors();
+      });
+    }
+
+    // Skip Doors (go to map)
+    if (this.btnSkipDoors) {
+      this.btnSkipDoors.addEventListener('click', () => {
+        window.soundEngine?.playPortalSelect?.();
+        this.showToast('✦ 保持當前航線，前往星圖自選關卡！');
+        this.switchView('view-map');
       });
     }
 
@@ -705,6 +717,8 @@ class MindOdysseyApp {
   }
 
   renderThreeDoors() {
+    this.selectedDoorIds = new Set();
+    if (this.doorsSelectedCount) this.doorsSelectedCount.textContent = '0';
     this.doorsContainer.innerHTML = '';
     const doors = this.activeNode.doors || [];
     this.renderDoorCards(doors, false);
@@ -720,10 +734,13 @@ class MindOdysseyApp {
   renderDoorCards(doors, isAiGenerated = false) {
     if (!this.doorsContainer) return;
     this.doorsContainer.innerHTML = '';
+    this.currentDoors = doors;
 
     doors.forEach(door => {
       const doorCard = document.createElement('div');
-      doorCard.className = 'door-card';
+      const isSelected = this.selectedDoorIds.has(door.targetId);
+      doorCard.className = `door-card ${isSelected ? 'selected' : ''}`;
+      doorCard.dataset.targetId = door.targetId;
       
       let badgeClass = 'badge-deep';
       if (door.type === 'cross') badgeClass = 'badge-cross';
@@ -733,9 +750,14 @@ class MindOdysseyApp {
       const targetEn = targetNode && targetNode.modelEn ? ` (${targetNode.modelEn})` : '';
 
       doorCard.innerHTML = `
+        <div class="door-checkbox ${isSelected ? 'checked' : ''}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
         <div class="door-portal-icon">${door.icon || '🚪'}</div>
-        <div class="door-info">
-          <div style="display: flex; align-items: center;">
+        <div class="door-info" style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px;">
             <div class="door-badge ${badgeClass}">${door.badge}</div>
             ${isAiGenerated ? `<span class="door-ai-tag">✦ AI 探索</span>` : ''}
           </div>
@@ -745,12 +767,58 @@ class MindOdysseyApp {
       `;
 
       doorCard.addEventListener('click', () => {
-        window.soundEngine?.playPortalSelect?.();
-        this.selectDoor(door.targetId, door.title);
+        window.soundEngine?.playClick?.();
+        if (this.selectedDoorIds.has(door.targetId)) {
+          this.selectedDoorIds.delete(door.targetId);
+          doorCard.classList.remove('selected');
+          doorCard.querySelector('.door-checkbox')?.classList.remove('checked');
+        } else {
+          this.selectedDoorIds.add(door.targetId);
+          doorCard.classList.add('selected');
+          doorCard.querySelector('.door-checkbox')?.classList.add('checked');
+        }
+        if (this.doorsSelectedCount) {
+          this.doorsSelectedCount.textContent = this.selectedDoorIds.size;
+        }
       });
 
       this.doorsContainer.appendChild(doorCard);
     });
+  }
+
+  handleImportSelectedDoors() {
+    if (!this.selectedDoorIds || this.selectedDoorIds.size === 0) {
+      this.showToast('ℹ️ 請先勾選至少 1 個航向，或點擊「全部略過」自選星圖關卡！');
+      return;
+    }
+
+    let importedCount = 0;
+    this.selectedDoorIds.forEach(targetId => {
+      const door = (this.currentDoors || []).find(d => d.targetId === targetId);
+      if (door) {
+        if (!window.MIND_DATABASE.some(n => n.id === door.targetId)) {
+          const fogNode = {
+            id: door.targetId,
+            domain: door.type === 'cross' ? '跨學科前沿' : (this.activeNode ? this.activeNode.domain : '跨學科前沿'),
+            domainId: door.type === 'cross' ? 'cross_frontier' : (this.activeNode ? this.activeNode.domainId : 'cross_frontier'),
+            title: door.title,
+            modelEn: door.targetId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+            subtitle: door.hook,
+            icon: door.icon || '🌌',
+            status: 'fogged'
+          };
+          window.syncManager.addCustomNode(fogNode);
+          importedCount++;
+        }
+      }
+    });
+
+    window.soundEngine?.playUnlockNode?.();
+    this.showToast(`✦ 成功將 ${importedCount} 個全新航向匯入迷霧星圖！已標註為待闖關關卡`);
+    this.renderMap();
+    setTimeout(() => {
+      this.switchView('view-map');
+    }, 600);
   }
 
   async fetchDynamicNewDoors(geminiKey, openrouterKey) {
@@ -789,7 +857,7 @@ class MindOdysseyApp {
 
     // 1. Try Gemini
     if (geminiKey) {
-      const models = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
+      const models = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash', 'gemini-2.5-flash'];
       for (const m of models) {
         try {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
@@ -797,7 +865,7 @@ class MindOdysseyApp {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{ role: 'user', parts: [{ text: prompt }] }],
-              generationConfig: { responseMimeType: "application/json" }
+              generationConfig: { responseMimeType: "application/json", maxOutputTokens: 2048 }
             })
           });
           if (res.ok) {
@@ -813,7 +881,7 @@ class MindOdysseyApp {
 
     // 2. Try OpenRouter Fallback
     if (!generatedDoors && openrouterKey) {
-      const freeModels = ['minimax/minimax-m2.7:free', 'liquid/lfm-2.5-2.6b:free'];
+      const freeModels = ['minimax/minimax-m2.7:free', 'liquid/lfm-2.5-2.6b:free', 'google/gemma-4-31b-it:free'];
       for (const m of freeModels) {
         try {
           const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -844,24 +912,9 @@ class MindOdysseyApp {
 
     if (generatedDoors && Array.isArray(generatedDoors) && generatedDoors.length >= 3) {
       this.activeNode.doors = generatedDoors;
+      this.currentDoors = generatedDoors;
       this.renderDoorCards(generatedDoors, true);
-      
-      // Inject newly discovered horizon topics into Star Map as fogged uncharted nodes
-      generatedDoors.forEach(d => {
-        if (!window.MIND_DATABASE.some(n => n.id === d.targetId)) {
-          window.MIND_DATABASE.push({
-            id: d.targetId,
-            domain: d.type === 'cross' ? '跨學科前沿' : this.activeNode.domain,
-            domainId: d.type === 'cross' ? 'cross_frontier' : this.activeNode.domainId,
-            title: d.title,
-            subtitle: d.hook,
-            icon: d.icon || '🌌',
-            status: 'fogged'
-          });
-        }
-      });
-      this.renderMap();
-      this.showToast('✨ AI 探測出 3 條全新跨域航向！已同步標記於迷霧星圖！');
+      this.showToast('✨ AI 探測出 3 條全新跨域航向！請勾選想探索的知識點匯入迷霧星圖');
     }
   }
 
@@ -1053,43 +1106,51 @@ class MindOdysseyApp {
       nodesInDomain.forEach(node => {
         const isLit = state.completedNodes.includes(node.id);
         const isActive = state.activeNodeId === node.id && !isLit;
-        const isUnlocked = state.unlockedNodes.includes(node.id) || isLit || isActive;
 
         const nodeEl = document.createElement('div');
-        nodeEl.className = `mind-node ${isLit ? 'lit' : isActive ? 'active-frontier' : isUnlocked ? '' : 'fogged'}`;
+        nodeEl.className = `mind-node ${isLit ? 'lit' : isActive ? 'active-frontier' : 'fogged'}`;
 
         let iconHtml = '';
-        if (!isUnlocked) {
-          iconHtml = `<div class="node-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="2"/></svg></div>`;
-        } else if (node.relicReward && node.relicReward.svg) {
+        if (isLit && node.relicReward && node.relicReward.svg) {
           iconHtml = `<img src="${node.relicReward.svg}" class="node-svg-relic" alt="${node.title}">`;
-        } else {
+        } else if (isLit) {
+          iconHtml = `<div class="node-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><polyline points="9 12 11 14 15 10"/></svg></div>`;
+        } else if (isActive) {
           iconHtml = `<div class="node-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg></div>`;
+        } else {
+          iconHtml = `<div class="node-icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="2"/></svg></div>`;
         }
+
+        const nodeTitleText = node.title.split('：')[0];
+        const nodeEnText = node.modelEn || (isLit ? 'MASTERED' : 'FRONTIER');
 
         nodeEl.innerHTML = `
-          ${isActive ? `<div class="active-frontier-tag"><span class="frontier-pulse-dot"></span> 拓荒中</div>` : ''}
+          ${isActive ? `<div class="active-frontier-tag"><span class="frontier-pulse-dot"></span> 拓荒中</div>` : (!isLit ? `<div class="fogged-frontier-tag">🌫️ 待闖關</div>` : '')}
           ${iconHtml}
-          <div class="node-title">${isUnlocked ? node.title.split('：')[0] : '未知引力信號'}</div>
-          <div class="node-en-sub">${isUnlocked ? (node.modelEn || '') : 'UNCHARTED'}</div>
+          <div class="node-title">${nodeTitleText}</div>
+          <div class="node-en-sub">${nodeEnText}</div>
         `;
 
-        if (isUnlocked) {
-          nodeEl.addEventListener('click', () => {
-            window.soundEngine?.playCardFlip?.();
-            if (isLit) {
-              // 已通關節點：直接開啟心智圖鑑好讀模式！
-              this.openCodexModal(node.id);
-            } else if (!node.dilemma) {
-              // 尚未自主合成的 AI 新星系：自動啟動曲速拓荒！
-              this.startFrontierExploration(node.id, node.title, node.domain);
-            } else {
-              // 已就緒未完成節點：進入拓荒挑戰
-              this.loadActiveNode(node.id);
-              this.switchView('view-expedition');
+        nodeEl.addEventListener('click', () => {
+          window.soundEngine?.playCardFlip?.();
+          if (isLit) {
+            // 已通關節點：直接開啟心智圖鑑好讀模式！
+            this.openCodexModal(node.id);
+          } else if (!node.dilemma) {
+            // 尚未自主合成的 AI 新迷霧：自動啟動曲速拓荒推演！
+            this.startFrontierExploration(node.id, node.title, node.domain);
+          } else {
+            // 已就緒待闖關關卡：設為 activeNode 並進入拓荒闖關！
+            if (!state.unlockedNodes.includes(node.id)) {
+              state.unlockedNodes.push(node.id);
             }
-          });
-        }
+            state.activeNodeId = node.id;
+            window.syncManager.saveLocalState();
+            this.loadActiveNode(node.id);
+            this.switchView('view-expedition');
+            this.showToast(`✦ 已選定待闖關關卡：【${nodeTitleText}】！`);
+          }
+        });
 
         cluster.appendChild(nodeEl);
       });

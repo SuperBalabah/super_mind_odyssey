@@ -21,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="src/styles/main.css">
+  <link rel="stylesheet" href="src/styles/main.css?v=2.4.1">
 </head>
 <body>
   <!-- Ambient Cosmic Starfield Background Canvas -->
@@ -317,17 +317,22 @@
               <polygon points="12 2 15 9 22 12 15 15 12 22 9 15 2 12 9 9 12 2" fill="rgba(56, 189, 248, 0.2)"/>
             </svg>
           </div>
-          <h2 class="three-doors-title">星系節點已點亮 // 選擇明日曲速躍遷航向</h2>
-          <p class="three-doors-desc">HYPERLANE GATES ONLINE: 鎖定感興趣的引力信號開啟傳送</p>
+          <h2 class="three-doors-title">星系節點已點亮 // AI 探測出三大新領域航向</h2>
+          <p class="three-doors-desc">HYPERLANE GATES ONLINE: 勾選你想探索的全新知識點，將自動匯入迷霧星圖（支援複選、單選或全部略過）</p>
 
           <div class="doors-grid" id="doors-list-container">
-            <!-- Dynamically populated Warp Doors -->
+            <!-- Dynamically populated Warp Doors with checkboxes -->
           </div>
 
-          <button class="door-pass-btn" id="btn-pass-doors">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-            盲跳躍遷 // EMERGENCY WARP TO UNCHARTED HORIZON
-          </button>
+          <div class="doors-actions-row" style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; width: 100%;">
+            <button class="btn-action-primary" id="btn-import-doors" style="flex: 1; padding: 12px 18px; font-size: 13px;">
+              <span>✦ 匯入選取航向至迷霧星圖 (<span id="doors-selected-count">0</span>)</span>
+            </button>
+            <button class="door-pass-btn" id="btn-skip-doors" style="margin-top: 0; padding: 12px 18px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+              <span>全部略過，前往星圖自選關卡</span>
+            </button>
+          </div>
         </section>
 
       </div>
@@ -626,11 +631,11 @@
   </div>
 
   <!-- Scripts -->
-  <script src="src/scripts/starfield.js?v=2.4.0"></script>
-  <script src="src/scripts/audio.js?v=2.4.0"></script>
-  <script src="src/scripts/database.js?v=2.4.0"></script>
-  <script src="src/scripts/sync.js?v=2.4.0"></script>
-  <script src="src/scripts/app.js?v=2.4.0"></script>
+  <script src="src/scripts/starfield.js?v=2.4.1"></script>
+  <script src="src/scripts/audio.js?v=2.4.1"></script>
+  <script src="src/scripts/database.js?v=2.4.1"></script>
+  <script src="src/scripts/sync.js?v=2.4.1"></script>
+  <script src="src/scripts/app.js?v=2.4.1"></script>
 
   <!-- Service Worker Registration for PWA Offline Cache -->
   <script>

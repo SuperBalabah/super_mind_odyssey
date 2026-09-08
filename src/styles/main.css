@@ -766,12 +766,46 @@ body {
   overflow: hidden;
   display: flex;
   gap: 14px;
+  align-items: center;
 }
 
 .door-card:hover {
   border-color: var(--accent-cyan);
   transform: translateY(-3px) scale(1.01);
   box-shadow: var(--shadow-glow-cyan);
+}
+
+.door-card.selected {
+  border-color: rgba(56, 189, 248, 0.85);
+  background: linear-gradient(135deg, rgba(24, 38, 70, 0.9), rgba(14, 22, 42, 0.95));
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.3), inset 0 0 12px rgba(56, 189, 248, 0.1);
+  transform: translateY(-2px);
+}
+
+.door-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.door-card:hover .door-checkbox {
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.door-card.selected .door-checkbox,
+.door-checkbox.checked {
+  border-color: var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.25);
+  color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
 .door-badge {
@@ -948,9 +982,46 @@ body {
 }
 
 .mind-node.fogged {
-  opacity: 0.45;
-  filter: grayscale(0.8) blur(0.5px);
-  cursor: not-allowed;
+  opacity: 0.82;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.75), rgba(30, 41, 59, 0.45));
+  border: 1px dashed rgba(148, 163, 184, 0.35);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mind-node.fogged:hover {
+  opacity: 1;
+  border-color: rgba(56, 189, 248, 0.8) !important;
+  border-style: solid;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(20, 35, 65, 0.75)) !important;
+}
+
+.fogged-frontier-tag {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.2s ease;
+}
+
+.mind-node.fogged:hover .fogged-frontier-tag {
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #38bdf8;
+  background: rgba(15, 23, 42, 0.98);
 }
 
 @keyframes pulseFrontier {

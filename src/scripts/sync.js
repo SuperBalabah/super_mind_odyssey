@@ -245,6 +245,38 @@ class SyncManager {
     }
   }
 
+  // Pull latest progress from Gist
+  async pullFromGist() {
+    if (!this.gistConfig.token || !this.gistConfig.gistId) {
+      return { success: false, reason: '未填寫 Gist Token 或 Gist ID' };
+    }
+
+    try {
+      const res = await fetch(`https://api.github.com/gists/${this.gistConfig.gistId}`, {
+        headers: {
+          'Authorization': `token ${this.gistConfig.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const file = data.files['mind_odyssey_progress.json'];
+        if (file && file.content) {
+          const remoteState = JSON.parse(file.content);
+          this.state = { ...this.getDefaultState(), ...remoteState };
+          this.saveLocalState();
+          return { success: true, data: this.state };
+        }
+        return { success: false, reason: 'Gist 中尚未找到 mind_odyssey_progress.json 檔案' };
+      }
+      const err = await res.json();
+      return { success: false, reason: err.message || '無法讀取 Gist' };
+    } catch (e) {
+      return { success: false, reason: e.message };
+    }
+  }
+
   // Manual Cloud Push (100% full snapshot overwrite to Gist)
   async manualCloudPush() {
     if (!this.gistConfig.token || !this.gistConfig.gistId) {
